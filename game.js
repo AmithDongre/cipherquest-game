@@ -78,26 +78,20 @@ const QUESTION_BANK = {
   // ╚═══════════════════════════════════════════════════════╝
   rookie: [
     // ── World 0: Binary Jungle (CS Fundamentals) ─────────────
-    { world:0, q:"An algorithm runs in O(n²). The input size doubles from 10 to 20 elements. By what factor does the runtime increase?",
-      opts:["2× — it doubles",
-            "3× — it triples",
-            "4× — it quadruples",
-            "10× — it grows linearly with the difference"],
-      ans:2, hints:["Substitute both input sizes into n² and compare the two results.","10² = 100 and 20² = 400 — what is 400 divided by 100?"], boss:false },
+    { world:0, q:"What is the time complexity of Binary Search on a sorted array?",
+      opts:["O(n)",
+            "O(log n)",
+            "O(n²)",
+            "O(n log n)"],
+      ans:1, hints:["Think about what happens to the problem size after each comparison.","Each step eliminates half the remaining possibilities — what mathematical function describes repeated halving?"], boss:false },
 
-    { world:0, q:"What is the decimal value of the hexadecimal number 0xFF?",
-      opts:["15",
-            "16",
-            "255",
-            "256"],
-      ans:2, hints:["In hex, F represents the value 15 — now apply positional notation like you would in decimal.","FF means (15 × 16¹) + (15 × 16⁰) — work that out step by step."], boss:false },
+    { world:0, q:"Which number system uses base 16 with digits 0–9 and letters A–F?",
+      opts:["Octal","Decimal","Binary","Hexadecimal"],
+      ans:3, hints:["Memory addresses and color codes in web design commonly use this system.","When you run out of single digits, you borrow letters from the alphabet — this system needs six of them."], boss:false },
 
-    { world:0, q:"You push 5, then 10, then 15 onto a stack. You then call pop() twice. What value is now on top of the stack?",
-      opts:["15",
-            "10",
-            "5",
-            "The stack is empty"],
-      ans:2, hints:["Trace each operation in order — push all three values, then remove the top one twice.","After two pops, which of the three original values is still sitting in the stack?"], boss:false },
+    { world:0, q:"Which data structure follows Last-In-First-Out (LIFO) order?",
+      opts:["Queue","Heap","Stack","Deque"],
+      ans:2, hints:["Think about how you'd undo a series of actions in a text editor.","The exit order is the exact reverse of the entry order — what structure enforces that?"], boss:false },
 
     { world:0, q:"What is the result of bitwise AND between 0b1010 and 0b1100?",
       opts:["0b1110",
@@ -113,12 +107,12 @@ const QUESTION_BANK = {
             "Leftmost leaf in the bottom row of the heap"],
       ans:2, hints:["In this tree structure, every parent is guaranteed to be smaller than both its children.","The property is enforced from root to leaves — so the smallest value can only be in one place."], boss:false },
 
-    { world:0, q:"Which statement correctly describes RAM compared to a hard disk?",
-      opts:["RAM permanently stores the OS even when powered off",
-            "RAM is volatile — it loses all data the moment power is removed",
-            "RAM is slower than a hard disk for reading sequential data",
-            "RAM stores data magnetically on spinning platters"],
-      ans:1, hints:["The key word separating these two storage types is 'volatile' — only one of them is.","Every time you shut down without saving your work, you lose what was in RAM — that reveals something about its nature."], boss:false },
+    { world:0, q:"What does the acronym 'RAM' stand for?",
+      opts:["Read-Access Memory",
+            "Random-Access Memory",
+            "Rapid-Allocation Memory",
+            "Read-And-Modify Memory"],
+      ans:1, hints:["This memory loses everything when power is cut — it's volatile by nature.","The 'Random' in its name doesn't mean unpredictable — it means any address takes the same time to reach."], boss:false },
 
     { world:0, q:"Which of the following is NOT a characteristic of an abstract class in OOP?",
       opts:["Can have constructors that subclasses call via super()",
@@ -127,20 +121,17 @@ const QUESTION_BANK = {
             "Cannot declare or use instance variables of any type"],
       ans:3, hints:["The question asks what is NOT true — one of those four statements is wrong about abstract classes.","Abstract classes are almost identical to regular classes in what they can contain — only one specific action is forbidden."], boss:false },
 
-    { world:0, q:"A screen pixel stores Red, Green, and Blue values each using 1 byte. How many unique colors can that one pixel represent?",
-      opts:["512",
-            "65,536",
-            "16,777,216",
-            "4,294,967,296"],
-      ans:2, hints:["Each channel independently stores a value from 0 to 255 — that's 256 possibilities per channel.","You have three independent channels, each with 256 options — multiply them, don't add."], boss:false },
+    { world:0, q:"How many bits are in one byte?",
+      opts:["4 bits",
+            "6 bits",
+            "8 bits",
+            "16 bits"],
+      ans:2, hints:["All storage measurements — KB, MB, GB — are multiples of this single unit.","It takes exactly this many individual binary digits to represent a value from 0 to 255."], boss:false },
 
     // ── World 1: Network Nebula (Networking & Security) ───────
-    { world:1, q:"A network switch receives a frame whose destination MAC address is not in its forwarding table. What does it do?",
-      opts:["Drops the frame silently and logs an error",
-            "Sends the frame only to the default gateway",
-            "Floods the frame out of every port except the one it arrived on",
-            "Queries a DNS server to resolve the destination address"],
-      ans:2, hints:["The switch cannot make a smart decision without knowing where the destination lives — so it takes a 'broadcast and hope' approach.","This is called unknown unicast flooding — the switch acts like a hub just for that one frame."], boss:false },
+    { world:1, q:"Which OSI layer is responsible for end-to-end error recovery and flow control?",
+      opts:["Network","Data Link","Transport","Session"],
+      ans:2, hints:["TCP and UDP both live at this layer — one reliable, one fast.","The question says 'end-to-end' — that means the two communicating applications, not intermediate nodes."], boss:false },
 
     { world:1, q:"What is the maximum number of usable host addresses in a /24 subnet?",
       opts:["256 addresses",
@@ -149,12 +140,9 @@ const QUESTION_BANK = {
             "252 addresses"],
       ans:2, hints:["A /24 subnet has 8 bits for hosts — calculate 2^8 first, then remember two addresses are always off-limits.","One reserved address names the network itself; the other is used to reach every device simultaneously."], boss:false },
 
-    { world:1, q:"Your DNS resolver has no cached entry for 'api.example.com'. What is the FIRST external server it contacts to begin resolving the name?",
-      opts:["The authoritative nameserver for example.com",
-            "A root nameserver",
-            "The .com TLD nameserver",
-            "Your ISP's mail server"],
-      ans:1, hints:["Name resolution is a chain — you always start at the very top of the DNS hierarchy before working your way down.","There are only 13 sets of these in the world, labelled A through M, and every resolver knows them by default."], boss:false },
+    { world:1, q:"Which protocol translates domain names into IP addresses?",
+      opts:["DHCP","ARP","DNS","NAT"],
+      ans:2, hints:["Every time you type a website name, your computer consults this protocol before anything else happens.","It's the internet's directory service — names in, numbers out."], boss:false },
 
     { world:1, q:"What type of attack passively captures network packets between two systems?",
       opts:["Phishing","Packet Sniffing","DDoS","SQL Injection"],
@@ -171,34 +159,34 @@ const QUESTION_BANK = {
             "Resolves domain names to IP addresses for connected clients"],
       ans:1, hints:["This device sits at a network boundary and makes decisions about every packet that tries to cross.","It operates based on pre-configured rules — not content inspection, just traffic policy."], boss:false },
 
-    { world:1, q:"A firewall rule blocks all traffic on port 443. A user tries to open an HTTPS website. What happens?",
-      opts:["The browser falls back to HTTP on port 80 automatically",
-            "The browser retries on port 8080 after a timeout",
-            "The connection fails — the browser cannot complete the TLS handshake",
-            "The page loads but images are stripped out for security"],
-      ans:2, hints:["HTTPS has one designated port — there is no automatic fallback to a different one.","The browser cannot negotiate encryption without reaching that specific port, so the attempt simply fails."], boss:false },
+    { world:1, q:"What is the default port number for HTTPS?",
+      opts:["80",
+            "8080",
+            "443",
+            "22"],
+      ans:2, hints:["This port number is as important to memorise as port 80 — it's the secure version of the same service.","The number sits between 400 and 500 and is divisible by 1."], boss:false },
 
-    { world:1, q:"A user at a coffee shop connects via an encrypted tunnel that hides ALL their traffic from the café router and makes them appear to be inside their company's office network. Which technology is this?",
-      opts:["NAT (Network Address Translation)",
-            "A web proxy server",
-            "VPN (Virtual Private Network)",
-            "HTTPS encryption alone"],
-      ans:2, hints:["This technology wraps every packet — not just browser traffic — inside an encrypted tunnel.","Unlike a proxy, this solution also assigns the user a private internal IP, making them virtually 'present' on the corporate LAN."], boss:false },
+    { world:1, q:"What does VPN stand for?",
+      opts:["Virtual Private Node",
+            "Virtual Public Network",
+            "Virtual Private Network",
+            "Verified Packet Network"],
+      ans:2, hints:["This technology creates a secure, encrypted connection across an untrusted public network.","Two of the three words in its full name are 'Virtual' and 'Private'."], boss:false },
 
     // ── World 2: Code Citadel (Programming & Algorithms) ─────
-    { world:2, q:"What does this Python expression evaluate to: bool(0) == bool([])?",
-      opts:["True",
-            "False",
-            "TypeError — bool() cannot accept a list",
-            "None"],
-      ans:0, hints:["Python has a concept of 'falsy' values — evaluate each side of the == separately first.","bool(0) gives False, and an empty list is also falsy in Python — compare the two results."], boss:false },
+    { world:2, q:"In Python, what is the output of: print(type([]))?",
+      opts:["<class 'tuple'>",
+            "<class 'array'>",
+            "<class 'list'>",
+            "<class 'set'>"],
+      ans:2, hints:["Python has exactly one collection type whose literal syntax uses square brackets.","Run `[]` in your head — what does Python call that thing?"], boss:false },
 
-    { world:2, q:"After ONE complete pass of Bubble Sort over the array [5, 3, 8, 1, 9, 2], what is guaranteed to be true?",
-      opts:["The entire array is sorted",
-            "The smallest element is at index 0",
-            "The largest element is in its final position at the end",
-            "The array is split into two independently sorted halves"],
-      ans:2, hints:["Bubble Sort repeatedly compares adjacent elements — trace what happens to the largest value as it gets swapped rightward.","The 'bubble' that gives the algorithm its name is the largest value rising to the top — or in array terms, sinking to the end."], boss:false },
+    { world:2, q:"Which sorting algorithm uses divide-and-conquer and has O(n log n) average-case complexity?",
+      opts:["Bubble Sort",
+            "Selection Sort",
+            "Insertion Sort",
+            "Quick Sort"],
+      ans:3, hints:["This algorithm's name is literally a positive adjective about speed.","It divides the array around a chosen element, then recursively sorts each side."], boss:false },
 
     { world:2, q:"In SQL, which clause filters rows BEFORE grouping?",
       opts:["HAVING","FILTER","WHERE","GROUP BY"],
@@ -222,19 +210,19 @@ const QUESTION_BANK = {
             "2.0"],
       ans:1, hints:["Python has two division operators — one gives you the exact decimal, the other always rounds down.","5 ÷ 2 is mathematically 2.5 — what whole number is immediately below that?"], boss:false },
 
-    { world:2, q:"An API returns HTTP 403 when you try to delete a record you can clearly read. What is the most likely explanation?",
-      opts:["The server cannot find the record at that endpoint URL",
-            "Your request body contains malformed or invalid JSON",
-            "You are authenticated but lack the required permission for that action",
-            "The server is overloaded and has temporarily rate-limited your account"],
-      ans:2, hints:["HTTP 403 and 401 are easy to confuse — 401 means 'I don't know who you are', while 403 means something subtly different.","The server already knows your identity — it just refuses to allow this specific action for your role."], boss:false },
+    { world:2, q:"What HTTP status code means the requested resource was not found on the server?",
+      opts:["200 OK",
+            "301 Moved Permanently",
+            "403 Forbidden",
+            "404 Not Found"],
+      ans:3, hints:["You've almost certainly encountered this number on a broken link somewhere on the web.","It's the most famous HTTP error code — everyone who uses the internet has seen it."], boss:false },
 
-    { world:2, q:"What does Python print when you run: print(0.1 + 0.2 == 0.3)?",
-      opts:["True",
-            "False",
-            "0.30000000000000004",
-            "ArithmeticError"],
-      ans:1, hints:["Computers store decimals in binary floating-point — and not every decimal fraction has an exact binary representation.","0.1 and 0.2 are both stored with tiny rounding errors; when added, the result is not exactly 0.3."], boss:false },
+    { world:2, q:"What is a 'null pointer exception' caused by?",
+      opts:["Stack overflow",
+            "Integer overflow",
+            "Dereferencing a null reference",
+            "Array index out of bounds"],
+      ans:2, hints:["The variable has been declared but it doesn't point to any actual object in memory.","Trying to call a method on 'nothing' triggers this — the runtime doesn't know where to look."], boss:false },
 
     // ── World 3: AI Realm (AI & Emerging Tech) ────────────────
     { world:3, q:"What does the activation function do in a neural network layer?",
@@ -269,12 +257,9 @@ const QUESTION_BANK = {
             "Converting a model from one framework format such as PyTorch to TensorFlow"],
       ans:1, hints:["Why train from zero when someone already did the hard part? This technique builds on existing work.","A model trained on millions of web pages can be adapted for medical diagnosis using this."], boss:false },
 
-    { world:3, q:"A language model's 'temperature' is set to 0. What is the most accurate description of its output behaviour?",
-      opts:["The model refuses to generate any response at all",
-            "The model always picks the highest-probability next token, making output fully deterministic",
-            "The model generates more creative and surprising responses than usual",
-            "The model runs faster by skipping unlikely token calculations"],
-      ans:1, hints:["Think of temperature like a randomness dial — turning it all the way to zero removes all randomness.","At this setting, given identical input, the model will produce exactly the same output every single time."], boss:false },
+    { world:3, q:"What is the name of OpenAI's flagship series of large language models?",
+      opts:["DALL-E","Whisper","Codex","GPT"],
+      ans:3, hints:["OpenAI's most well-known product family — the one that sparked the current AI wave — uses this name.","The three-letter acronym stands for Generative, Pre-trained, and one more word that describes its architecture."], boss:false },
 
 
   // ╔═══════════════════════════════════════════════════════╗
@@ -723,9 +708,6 @@ let state = {
   worldComplete:  [false, false, false, false],
   worldQuestions: [],            // [world][4] selected questions
   questionHintsUsed: 0,          // hints used on current question
-
-
-
   sessionId:     null,
   soundEnabled:  true,
   cooldownTimer: null,
@@ -795,17 +777,36 @@ function injectDifficultySelector() {
 }
 
 // ─── Firebase ─────────────────────────────────────────────────────
+let _lbUnsubscribe = null;   // holds the onValue unsubscribe fn to avoid duplicate listeners
+let _lbCache = [];           // latest scores from Firebase, always fresh
+
 function initFirebase() {
   try {
     if (firebaseConfig.apiKey === "YOUR_API_KEY") throw new Error("not configured");
     const app = initializeApp(firebaseConfig);
     state.fbDb = getDatabase(app);
-    const connRef = ref(state.fbDb, ".info/connected");
-    onValue(connRef, snap => {
+
+    // Connection state listener
+    onValue(ref(state.fbDb, ".info/connected"), snap => {
       state.fbConnected = !!snap.val();
       updateConnUI(state.fbConnected);
       if (state.fbConnected && state.teamName) syncScoreToFirebase();
     });
+
+    // ── ONE persistent real-time listener on scores ──────────────
+    // This fires immediately on attach and on every subsequent change,
+    // regardless of whether the leaderboard screen is open.
+    _lbUnsubscribe = onValue(ref(state.fbDb, "scores"), snap => {
+      const data = snap.val() || {};
+      _lbCache = Object.values(data).sort((a, b) => b.score - a.score);
+      // If leaderboard screen is currently visible, update it live
+      if (document.getElementById("screen-host")?.classList.contains("active")) {
+        renderLbDOM(_lbCache);
+      }
+    }, err => {
+      console.warn("Scores listener error:", err);
+    });
+
   } catch(e) {
     updateConnUI(false);
   }
@@ -847,11 +848,7 @@ window.startGame = function() {
 
   state.teamName   = name;
   state.difficulty = document.querySelector('input[name="difficulty"]:checked')?.value || "pro";
-  // Give a full regular question's worth of points upfront so both hints cost real pts from Q1
-  // (each hint = half of regular pts, so 2 hints exactly wipes the starting bonus back to 0)
-  const _startDiff = DIFFICULTY[state.difficulty];
-  const _startBonus = Math.round(POINTS_REGULAR * _startDiff.multiplier);
-  state.score      = _startBonus;
+  state.score      = 0;
   state.hintsUsed  = 0;
   state.startTime  = Date.now();
   state.worldProgress = [0,0,0,0];
@@ -922,13 +919,11 @@ window.enterWorld = function(worldIdx) {
   showScreen(`screen-world-${worldIdx}`, "screen-hub");
   updateWorldScore(worldIdx);
   spawnParticles(worldIdx);
-  changeTheme('world' + worldIdx);
 };
 
 window.returnToHub = function() {
   renderHub();
   showScreen("screen-hub");
-  changeTheme('hub');
 };
 
 function renderWorldNodes(wi) {
@@ -1096,11 +1091,10 @@ window.useHint = function() {
   const q        = state.worldQuestions[state.currentQ.worldIdx][state.currentQ.questionIdx];
   const hintIdx  = state.questionHintsUsed;   // 0-based index of the hint to reveal next
   const hints    = q.hints || [q.hint];        // fallback to legacy single hint
-  const hintCost = diff.hintCost;
 
   state.questionHintsUsed++;
   state.hintsUsed++;
-  state.score = Math.max(0, state.score - hintCost);
+  state.score = Math.max(0, state.score - diff.hintCost);
 
   // Show ALL hints revealed so far, stacked — so teams can re-read earlier ones
   const revealed = hints.slice(0, state.questionHintsUsed);
@@ -1115,7 +1109,7 @@ window.useHint = function() {
   document.getElementById("hintBtn").disabled = (state.questionHintsUsed >= diff.maxHintsPerQuestion);
   document.getElementById("hintBtn").textContent =
     state.questionHintsUsed < diff.maxHintsPerQuestion
-      ? `Next Hint (−${hintCost})`
+      ? `Next Hint (−${diff.hintCost})`
       : "No hints left";
   document.getElementById("qScore").textContent = `${state.score} pts`;
   syncScoreToFirebase();
@@ -1145,7 +1139,6 @@ window.selectAnswer = function(optIdx) {
     syncScoreToFirebase();
     const worldTotal = state.worldTotals?.[worldIdx] ?? 8;
     const worldDone  = state.worldProgress[worldIdx] >= worldTotal;
-    // Show full question value in feedback (advance + remaining = full pts)
     setTimeout(() => showFeedback(true, pts, worldIdx, questionIdx, worldDone), 400);
   } else {
     playSound("wrong");
@@ -1261,23 +1254,20 @@ window.backFromHost = function() {
 };
 
 function renderLeaderboard() {
-  if (state.fbDb && state.fbConnected) {
-    onValue(ref(state.fbDb, "scores"), snap => {
-      const data = snap.val() || {};
-      const teams = Object.values(data).sort((a,b) => b.score - a.score || (a.timeTaken||0) - (b.timeTaken||0));
-      renderLbDOM(teams);
-    });
+  // If Firebase is connected, _lbCache is kept live by the persistent listener in initFirebase().
+  // Just render whatever is in the cache right now — the listener will push updates automatically.
+  if (state.fbDb && state.fbConnected && _lbCache.length > 0) {
+    renderLbDOM(_lbCache);
+  } else if (state.fbDb && state.fbConnected) {
+    // Connected but cache not populated yet — show loading state briefly
+    const lbTable = document.getElementById("leaderboardTable");
+    const raceLanes = document.getElementById("raceLanes");
+    if (lbTable) lbTable.innerHTML = '<div style="padding:20px;color:#aaa;text-align:center">⏳ Loading scores…</div>';
+    if (raceLanes) raceLanes.innerHTML = '';
   } else {
-    const local = getLocalScores();
-    renderLbDOM(local);
+    // Offline fallback
+    renderLbDOM(getLocalScores());
   }
-}
-
-function fmtTime(sec) {
-  if (!sec && sec !== 0) return '—';
-  const m = String(Math.floor(sec / 60)).padStart(2, '0');
-  const s = String(sec % 60).padStart(2, '0');
-  return `${m}:${s}`;
 }
 
 function renderLbDOM(teams) {
@@ -1295,7 +1285,6 @@ function renderLbDOM(teams) {
         </div>
       </div>
       <div class="race-score">${t.score} pts</div>
-      <div class="race-time">⏱ ${fmtTime(t.timeTaken)}</div>
     </div>`).join('') || '<div style="padding:20px;color:#aaa">No teams yet…</div>';
 
   lbTable.innerHTML = teams.map((t, i) => `
@@ -1304,7 +1293,6 @@ function renderLbDOM(teams) {
       <div class="lb-team">${escHtml(t.name)}<span class="lb-diff"> · ${DIFFICULTY[t.difficulty||'pro']?.label||''}</span></div>
       <div class="lb-prog">${t.progress||0}/30 questions</div>
       <div class="lb-score">${t.score} pts</div>
-      <div class="lb-time">⏱ ${fmtTime(t.timeTaken)}</div>
       <div class="lb-status">${t.complete ? '✅ Done' : '⏳ Playing'}</div>
     </div>`).join('') || '<div style="padding:20px;color:#aaa">Waiting for teams…</div>';
 }
@@ -1323,15 +1311,12 @@ window.clearAllData = function() {
 function syncScoreToFirebase(final = false) {
   if (!state.teamName) return;
   const totalProgress = state.worldProgress.reduce((a,b)=>a+b,0);
-  const isComplete = state.worldComplete.every(Boolean);
-  const elapsedSec = state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0;
   const payload = {
     name:       state.teamName,
     score:      state.score,
     progress:   totalProgress,
     difficulty: state.difficulty,
-    complete:   isComplete,
-    timeTaken:  elapsedSec,   // always live; locked at finish so host sees final time
+    complete:   state.worldComplete.every(Boolean),
     updatedAt:  Date.now()
   };
 
@@ -1339,7 +1324,7 @@ function syncScoreToFirebase(final = false) {
   const scores = getLocalScores();
   const idx = scores.findIndex(s => s.name === state.teamName);
   if (idx >= 0) scores[idx] = payload; else scores.push(payload);
-  scores.sort((a,b) => b.score - a.score || (a.timeTaken||0) - (b.timeTaken||0));
+  scores.sort((a,b) => b.score - a.score);
   localStorage.setItem("cq_scores", JSON.stringify(scores));
 
   if (state.fbDb && state.fbConnected) {
@@ -1357,7 +1342,6 @@ function getLocalScores() {
 // ═══════════════════════════════════════════════════════════════════
 window.resetGame = function() {
   stopMusic();
-  currentThemeId = 'hub';
   state = { ...state,
     teamName:"", score:0, hintsUsed:0, startTime:null,
     currentWorld:null, currentQ:null,
@@ -1434,100 +1418,12 @@ function showToast(msg, type = "info") {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  SOUND ENGINE  —  Per-world themes  (Web Audio API)
+//  SOUND ENGINE  —  Calm & Motivating  (Web Audio API)
 // ═══════════════════════════════════════════════════════════════════
-let audioCtx     = null;
-let musicNodes   = [];
+let audioCtx  = null;
+let musicNodes = [];      // tracks all background music nodes for clean stop
 let musicRunning = false;
-let musicLoop    = null;
-let currentThemeId = 'hub';
-
-// ── Per-world music themes ────────────────────────────────────────
-const MUSIC_THEMES = {
-
-  // Landing / Hub — calm Am → F → C → G, BPM 72
-  hub: {
-    bpm:72, melType:'triangle', masterVol:0.55, padVol:0.045, bassVol:0.12, shimmer:true,
-    chords:[[220,261.6,329.6],[174.6,220,261.6],[130.8,164.8,196],[146.8,196,246.9]],
-    bassRoots:[110,87.3,65.4,73.4],
-    melody:[
-      {f:440,b:0},{f:523.3,b:0.5},{f:587.3,b:1},{f:659.3,b:1.5},
-      {f:587.3,b:2},{f:523.3,b:2.5},{f:440,b:3},{f:392,b:3.5},
-      {f:349.2,b:4},{f:392,b:4.5},{f:440,b:5},{f:523.3,b:5.5},
-      {f:587.3,b:6},{f:523.3,b:6.5},{f:440,b:7},{f:392,b:7.5},
-      {f:523.3,b:8},{f:587.3,b:8.5},{f:659.3,b:9},{f:783.9,b:9.5},
-      {f:659.3,b:10},{f:587.3,b:10.5},{f:523.3,b:11},{f:440,b:11.5},
-      {f:392,b:12},{f:440,b:12.5},{f:392,b:13},{f:349.2,b:13.5},
-      {f:330,b:14},{f:293.7,b:14.5},{f:261.6,b:15},{f:220,b:15.5},
-    ],
-  },
-
-  // 🌿 Binary Jungle — warm, earthy, C major, BPM 76
-  world0: {
-    bpm:76, melType:'triangle', masterVol:0.52, padVol:0.042, bassVol:0.11, shimmer:true,
-    chords:[[130.8,164.8,196],[196,246.9,293.7],[220,261.6,329.6],[174.6,220,261.6]],
-    bassRoots:[65.4,98.0,110.0,87.3],
-    melody:[
-      // C major pentatonic: C(261.6) D(293.7) E(329.6) G(392) A(440)
-      {f:261.6,b:0},{f:329.6,b:0.5},{f:392,b:1},{f:440,b:1.5},
-      {f:392,b:2},{f:329.6,b:2.5},{f:261.6,b:3},{f:293.7,b:3.5},
-      {f:392,b:4},{f:440,b:4.5},{f:493.9,b:5},{f:440,b:5.5},
-      {f:392,b:6},{f:329.6,b:6.5},{f:293.7,b:7},{f:261.6,b:7.5},
-      {f:440,b:8},{f:523.3,b:8.5},{f:587.3,b:9},{f:523.3,b:9.5},
-      {f:440,b:10},{f:392,b:10.5},{f:329.6,b:11},{f:261.6,b:11.5},
-      {f:349.2,b:12},{f:392,b:12.5},{f:440,b:13},{f:392,b:13.5},
-      {f:329.6,b:14},{f:293.7,b:14.5},{f:261.6,b:15},{f:293.7,b:15.5},
-    ],
-  },
-
-  // 🌌 Network Nebula — spacey, slow, D minor, BPM 60
-  world1: {
-    bpm:60, melType:'sine', masterVol:0.48, padVol:0.032, bassVol:0.085, shimmer:false,
-    chords:[[146.8,174.6,220],[116.5,146.8,174.6],[174.6,220,261.6],[130.8,164.8,196]],
-    bassRoots:[73.4,58.3,87.3,65.4],
-    melody:[
-      // Very sparse — one note every 2 beats. D minor: D F A C
-      {f:293.7,b:0},{f:349.2,b:2},{f:440,b:4},{f:523.3,b:6},
-      {f:440,b:8},{f:587.3,b:10},{f:523.3,b:12},{f:349.2,b:14},
-    ],
-  },
-
-  // ⚙️ Code Citadel — mechanical, E minor, BPM 90, square wave
-  world2: {
-    bpm:90, melType:'square', masterVol:0.44, padVol:0.028, bassVol:0.09, shimmer:false,
-    chords:[[164.8,196,246.9],[130.8,164.8,196],[196,246.9,293.7],[146.8,185.0,220]],
-    bassRoots:[82.4,65.4,98.0,73.4],
-    melody:[
-      // E minor pentatonic: E(329.6) G(392) A(440) B(493.9) D(587.3)
-      {f:329.6,b:0},{f:392,b:0.5},{f:440,b:1},{f:329.6,b:1.5},
-      {f:493.9,b:2},{f:440,b:2.5},{f:392,b:3},{f:493.9,b:3.5},
-      {f:392,b:4},{f:493.9,b:4.5},{f:587.3,b:5},{f:493.9,b:5.5},
-      {f:440,b:6},{f:392,b:6.5},{f:329.6,b:7},{f:392,b:7.5},
-      {f:659.3,b:8},{f:587.3,b:8.5},{f:493.9,b:9},{f:440,b:9.5},
-      {f:392,b:10},{f:329.6,b:10.5},{f:392,b:11},{f:440,b:11.5},
-      {f:493.9,b:12},{f:587.3,b:12.5},{f:659.3,b:13},{f:587.3,b:13.5},
-      {f:493.9,b:14},{f:440,b:14.5},{f:392,b:15},{f:329.6,b:15.5},
-    ],
-  },
-
-  // 🤖 AI Realm — futuristic, F minor, BPM 95
-  world3: {
-    bpm:95, melType:'triangle', masterVol:0.46, padVol:0.030, bassVol:0.085, shimmer:true,
-    chords:[[174.6,207.7,261.6],[138.6,174.6,207.7],[207.7,261.6,311.1],[155.6,196.0,233.1]],
-    bassRoots:[87.3,69.3,103.8,77.8],
-    melody:[
-      // F minor pentatonic: F(349.2) Ab(415.3) Bb(466.2) C(523.3) Eb(622.3)
-      {f:349.2,b:0},{f:415.3,b:0.5},{f:466.2,b:1},{f:523.3,b:1.5},
-      {f:622.3,b:2},{f:523.3,b:2.5},{f:466.2,b:3},{f:523.3,b:3.5},
-      {f:466.2,b:4},{f:415.3,b:4.5},{f:349.2,b:5},{f:415.3,b:5.5},
-      {f:466.2,b:6},{f:523.3,b:6.5},{f:466.2,b:7},{f:415.3,b:7.5},
-      {f:523.3,b:8},{f:622.3,b:8.5},{f:659.3,b:9},{f:622.3,b:9.5},
-      {f:523.3,b:10},{f:466.2,b:10.5},{f:523.3,b:11},{f:622.3,b:11.5},
-      {f:466.2,b:12},{f:523.3,b:12.5},{f:466.2,b:13},{f:415.3,b:13.5},
-      {f:349.2,b:14},{f:415.3,b:14.5},{f:349.2,b:15},{f:311.1,b:15.5},
-    ],
-  },
-};
+let musicLoop    = null;  // setTimeout handle for loop scheduling
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1586,41 +1482,44 @@ function stopMusic() {
   musicNodes = [];
 }
 
-function changeTheme(themeId) {
-  if (currentThemeId === themeId && musicRunning) return;
-  currentThemeId = themeId;
-  if (!state.soundEnabled) return;
-  stopMusic();
-  setTimeout(() => { if (state.soundEnabled) startMusic(); }, 300);
-}
-
 function scheduleLoop() {
   if (!musicRunning || !state.soundEnabled) return;
-  const theme = MUSIC_THEMES[currentThemeId] || MUSIC_THEMES.hub;
-  const ctx   = getAudioCtx();
-  const t     = ctx.currentTime + 0.05;
-  const beat  = 60 / theme.bpm;
-  const bar   = beat * 4;
-  const loop  = bar * 4;
+  const ctx  = getAudioCtx();
+  const t    = ctx.currentTime + 0.05;
+  const BPM  = 72;
+  const beat = 60 / BPM;          // 0.833s
+  const bar  = beat * 4;          // 3.33s
+  const loop = bar * 4;           // 13.33s — full 4-bar cycle
 
-  // Master chain with echo delay
+  // Master reverb-lite (feedback delay for space)
   const delay  = ctx.createDelay(0.5);
   const dGain  = ctx.createGain();
   const master = ctx.createGain();
   delay.delayTime.value = beat * 0.75;
   dGain.gain.value = 0.18;
-  master.gain.value = theme.masterVol;
+  master.gain.value = 0.55;
   delay.connect(dGain); dGain.connect(delay);
   delay.connect(master); master.connect(ctx.destination);
   musicNodes.push(delay, dGain, master);
 
-  // Chord pads
-  theme.chords.forEach((chord, i) => {
-    chord.forEach(f => pad(ctx, f, t + i * bar, bar + 0.3, theme.padVol, master));
+  // ── Chord pads ─────────────────────────────────────────────────
+  // Am        F         C         G
+  const chords = [
+    [220, 261.6, 329.6],   // Am  — A3 C4 E4
+    [174.6, 220, 261.6],   // F   — F3 A3 C4
+    [130.8, 164.8, 196],   // C   — C3 E3 G3
+    [146.8, 196, 246.9],   // G   — D3 G3 B3
+  ];
+  chords.forEach((chord, i) => {
+    chord.forEach(f => {
+      pad(ctx, f, t + i * bar, bar + 0.3, 0.045, master);
+    });
   });
 
-  // Bass (two pulses per bar)
-  theme.bassRoots.forEach((f, i) => {
+  // ── Bass line (root notes, soft & low) ──────────────────────────
+  const bassRoots = [110, 87.3, 65.4, 73.4]; // A2 F2 C2 G2
+  bassRoots.forEach((f, i) => {
+    // two bass pulses per bar
     [0, beat * 2].forEach(offset => {
       const bn = ctx.createOscillator();
       const bg = ctx.createGain();
@@ -1628,7 +1527,7 @@ function scheduleLoop() {
       bn.type = 'sine';
       bn.frequency.setValueAtTime(f, t + i * bar + offset);
       bg.gain.setValueAtTime(0, t + i * bar + offset);
-      bg.gain.linearRampToValueAtTime(theme.bassVol, t + i * bar + offset + 0.05);
+      bg.gain.linearRampToValueAtTime(0.12, t + i * bar + offset + 0.05);
       bg.gain.exponentialRampToValueAtTime(0.0001, t + i * bar + offset + beat * 1.6);
       bn.start(t + i * bar + offset);
       bn.stop(t + i * bar + offset + beat * 1.7);
@@ -1636,40 +1535,53 @@ function scheduleLoop() {
     });
   });
 
-  // Melody
-  const melVol = theme.melType === 'square' ? 0.038 : 0.07;
-  theme.melody.forEach(({f, b}) => {
+  // ── Pentatonic melody (A minor pentatonic: A B C E G) ──────────
+  // Gentle arpeggiated melody over the 4 bars
+  const mel = [
+    // bar 0 (Am)
+    {f:440,  b:0},    {f:523.3,b:0.5},  {f:587.3,b:1},    {f:659.3,b:1.5},
+    {f:587.3,b:2},    {f:523.3,b:2.5},  {f:440,  b:3},    {f:392,  b:3.5},
+    // bar 1 (F)
+    {f:349.2,b:4},    {f:392,  b:4.5},  {f:440,  b:5},    {f:523.3,b:5.5},
+    {f:587.3,b:6},    {f:523.3,b:6.5},  {f:440,  b:7},    {f:392,  b:7.5},
+    // bar 2 (C) — higher register, more hopeful
+    {f:523.3,b:8},    {f:587.3,b:8.5},  {f:659.3,b:9},    {f:783.9,b:9.5},
+    {f:659.3,b:10},   {f:587.3,b:10.5}, {f:523.3,b:11},   {f:440,  b:11.5},
+    // bar 3 (G) — resolve back down
+    {f:392,  b:12},   {f:440,  b:12.5}, {f:392,  b:13},   {f:349.2,b:13.5},
+    {f:330,  b:14},   {f:293.7,b:14.5}, {f:261.6,b:15},   {f:220,  b:15.5},
+  ];
+
+  mel.forEach(({f, b}) => {
     const mn = ctx.createOscillator();
     const mg = ctx.createGain();
     mn.connect(mg); mg.connect(master);
-    mn.type = theme.melType;
+    mn.type = 'triangle';
     mn.frequency.setValueAtTime(f, t + b * beat);
     mg.gain.setValueAtTime(0, t + b * beat);
-    mg.gain.linearRampToValueAtTime(melVol, t + b * beat + 0.04);
+    mg.gain.linearRampToValueAtTime(0.07, t + b * beat + 0.04);
     mg.gain.exponentialRampToValueAtTime(0.0001, t + b * beat + beat * 0.85);
     mn.start(t + b * beat);
     mn.stop(t + b * beat + beat);
     musicNodes.push(mn);
   });
 
-  // High shimmer — only for bright themes (hub, jungle, AI)
-  if (theme.shimmer) {
-    for (let i = 0; i < 16; i++) {
-      const sn = ctx.createOscillator();
-      const sg = ctx.createGain();
-      sn.connect(sg); sg.connect(master);
-      sn.type = 'triangle';
-      sn.frequency.setValueAtTime(1760, t + i * beat * 0.5);
-      sg.gain.setValueAtTime(0, t + i * beat * 0.5);
-      sg.gain.linearRampToValueAtTime(0.018, t + i * beat * 0.5 + 0.02);
-      sg.gain.exponentialRampToValueAtTime(0.0001, t + i * beat * 0.5 + 0.25);
-      sn.start(t + i * beat * 0.5);
-      sn.stop(t + i * beat * 0.5 + 0.3);
-      musicNodes.push(sn);
-    }
+  // ── Soft shimmer (high triangle pulses on beats) ─────────────────
+  for (let i = 0; i < 16; i++) {
+    const sn = ctx.createOscillator();
+    const sg = ctx.createGain();
+    sn.connect(sg); sg.connect(master);
+    sn.type = 'triangle';
+    sn.frequency.setValueAtTime(1760, t + i * beat * 0.5);
+    sg.gain.setValueAtTime(0, t + i * beat * 0.5);
+    sg.gain.linearRampToValueAtTime(0.018, t + i * beat * 0.5 + 0.02);
+    sg.gain.exponentialRampToValueAtTime(0.0001, t + i * beat * 0.5 + 0.25);
+    sn.start(t + i * beat * 0.5);
+    sn.stop(t + i * beat * 0.5 + 0.3);
+    musicNodes.push(sn);
   }
 
-  // Schedule next loop ~0.15s before this one ends to prevent gaps
+  // Schedule next loop ~0.1s before this one ends so there's no gap
   musicLoop = setTimeout(() => {
     musicNodes = musicNodes.filter(n => {
       try { n.playbackState; return true; } catch(e) { return false; }
