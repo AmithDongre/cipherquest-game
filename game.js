@@ -13,13 +13,13 @@ import {
 // ⚠  Replace ALL placeholder values with your actual Firebase project config
 // Get config from: Firebase Console → Project Settings → Your Apps → SDK setup
 const firebaseConfig = {
-  apiKey: "AIzaSyCsbAIShtFvEHpWpqQT1VnBJrStjKrBSlI",
-  authDomain: "cipherquest-itfest.firebaseapp.com",
-  databaseURL: "https://cipherquest-itfest-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "cipherquest-itfest",
-  storageBucket: "cipherquest-itfest.firebasestorage.app",
+  apiKey:            "AIzaSyCsbAIShtFvEHpWpqQT1VnBJrStjKrBSlI",
+  authDomain:        "cipherquest-itfest.firebaseapp.com",
+  databaseURL:       "https://cipherquest-itfest-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "cipherquest-itfest",
+  storageBucket:     "cipherquest-itfest.firebasestorage.app",
   messagingSenderId: "919144731797",
-  appId: "1:919144731797:web:8c49bcf39dcf6e8715379c"
+  appId:             "1:919144731797:web:8c49bcf39dcf6e8715379c"
 };
 
 // ─── DIFFICULTY CONFIG (Option B) ────────────────────────────────
@@ -793,13 +793,14 @@ function initFirebase() {
       if (state.fbConnected && state.teamName) syncScoreToFirebase();
     });
 
-    // ── ONE persistent real-time listener on scores ──────────────
-    // This fires immediately on attach and on every subsequent change,
-    // regardless of whether the leaderboard screen is open.
+    // ONE persistent real-time listener on scores — fires immediately then on every change
     _lbUnsubscribe = onValue(ref(state.fbDb, "scores"), snap => {
       const data = snap.val() || {};
       _lbCache = Object.values(data).sort((a, b) => b.score - a.score);
-      // If leaderboard screen is currently visible, update it live
+      // Mark as connected the moment we get any data response (even empty)
+      state.fbConnected = true;
+      updateConnUI(true);
+      // Always re-render leaderboard if it's open
       if (document.getElementById("screen-host")?.classList.contains("active")) {
         renderLbDOM(_lbCache);
       }
@@ -1254,18 +1255,11 @@ window.backFromHost = function() {
 };
 
 function renderLeaderboard() {
-  // If Firebase is connected, _lbCache is kept live by the persistent listener in initFirebase().
-  // Just render whatever is in the cache right now — the listener will push updates automatically.
-  if (state.fbDb && state.fbConnected && _lbCache.length > 0) {
+  if (state.fbDb) {
+    // Always render from cache — the persistent listener keeps it live.
+    // Cache starts as [] so this correctly shows "No teams yet" before anyone plays.
     renderLbDOM(_lbCache);
-  } else if (state.fbDb && state.fbConnected) {
-    // Connected but cache not populated yet — show loading state briefly
-    const lbTable = document.getElementById("leaderboardTable");
-    const raceLanes = document.getElementById("raceLanes");
-    if (lbTable) lbTable.innerHTML = '<div style="padding:20px;color:#aaa;text-align:center">⏳ Loading scores…</div>';
-    if (raceLanes) raceLanes.innerHTML = '';
   } else {
-    // Offline fallback
     renderLbDOM(getLocalScores());
   }
 }
