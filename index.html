@@ -66,11 +66,11 @@
         </div>
         <div class="rule-item">
           <span class="rule-icon">⭐</span>
-          <div class="rule-text"><strong>20–60 Points</strong>Scales with difficulty</div>
+          <div class="rule-text"><strong>20–30 Points</strong>Regular · Boss question</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">💡</span>
-          <div class="rule-text"><strong>2 Hints Per Q</strong>Each hint deducts points</div>
+          <div class="rule-text"><strong>Hints Cost Pts</strong>Less hints = more bonus</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">⏳</span>
@@ -82,7 +82,7 @@
         </div>
         <div class="rule-item">
           <span class="rule-icon">🥇</span>
-          <div class="rule-text"><strong>Highest Score</strong>Fastest time breaks ties</div>
+          <div class="rule-text"><strong>Highest Score</strong>Wins the crown!</div>
         </div>
       </div>
 
@@ -259,13 +259,55 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCREEN 8: VICTORY
      ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: BONUS OFFER
+     ═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-bonus">
+  <div class="bonus-card">
+    <div class="bonus-trophy">🔥</div>
+    <div class="bonus-title">PHASE 1 COMPLETE!</div>
+    <div class="bonus-team" id="bonusTeamName"></div>
+
+    <div class="bonus-stats">
+      <div class="bonus-stat">
+        <div class="bonus-stat-val" id="bonusPhase1Score"></div>
+        <div class="bonus-stat-lab">Phase 1 Score (incl. bonus)</div>
+      </div>
+      <div class="bonus-stat">
+        <div class="bonus-stat-val" id="bonusPhase1Time"></div>
+        <div class="bonus-stat-lab">Time Taken</div>
+      </div>
+    </div>
+    <div class="bonus-completion-tag" id="bonusCompletionBonus"></div>
+
+    <div class="bonus-offer-box">
+      <div class="bonus-offer-title">⚡ BONUS CHALLENGE AVAILABLE</div>
+      <div class="bonus-offer-label" id="bonusRoundLabel"></div>
+      <div class="bonus-offer-desc">
+        Same points (20 / 30 for boss) — but <strong>much harder questions</strong>.<br>
+        Up to <strong id="bonusMaxExtra"></strong> more points on the line.<br>
+        Can you handle the pressure?
+      </div>
+      <div class="bonus-warning">⚠️ Same points per question — but questions are much harder. Wrong answers still have cooldowns.</div>
+    </div>
+
+    <button class="btn btn-primary bonus-accept-btn" onclick="acceptBonus()">
+      🔥 Accept the Challenge!
+    </button>
+    <button class="btn btn-secondary" onclick="declineBonus()" style="width:100%;margin-top:10px">
+      🏁 No thanks — take my score
+    </button>
+  </div>
+</div>
+
 <div class="screen" id="screen-win">
   <div class="confetti-container" id="confettiContainer"></div>
   
   <div class="win-card">
     <span class="win-trophy">🏆</span>
-    <div class="win-title">QUEST COMPLETE!</div>
+    <div class="win-title" id="winTitle">QUEST COMPLETE!</div>
     <div class="win-team" id="winTeamName">Team Alpha</div>
+    <div class="win-phase-tag" id="winPhaseTag"></div>
     
     <div class="win-stats">
       <div class="win-stat">
@@ -322,7 +364,6 @@
         <div>Team</div>
         <div>Progress</div>
         <div style="text-align:right">Score</div>
-        <div style="text-align:center">Time</div>
         <div style="text-align:center">Status</div>
       </div>
       <div id="leaderboardTable"></div>
@@ -332,5 +373,4 @@
 
 <script type="module" src="game.js"></script>
 </body>
-
 </html>
