@@ -22,7 +22,7 @@ const firebaseConfig = {
   appId:             "1:919144731797:web:8c49bcf39dcf6e8715379c"
 };
 
-// ─── DIFFICULTY CONFIG (Option B) ────────────────────────────────
+// ─── DIFFICULTY CONFIG — flat equal points, same max for everyone ──
 const DIFFICULTY = {
   rookie: {
     label: "🌱 Rookie",
@@ -30,30 +30,66 @@ const DIFFICULTY = {
     hintCost: 10,
     maxHintsPerQuestion: 2,
     completionBonus: 0,
-    description: "×1 pts · 2 hints · No bonus"
+    description: "20 pts/question · 2 hints"
   },
   pro: {
     label: "⚔️ Pro",
-    multiplier: 1.5,
-    hintCost: 15,
+    multiplier: 1,
+    hintCost: 10,
     maxHintsPerQuestion: 2,
-    completionBonus: 45,
-    description: "×1.5 pts · 2 hints · +45 bonus"
+    completionBonus: 0,
+    description: "20 pts/question · 2 hints"
   },
   legend: {
     label: "👑 Legend",
-    multiplier: 2,
-    hintCost: 20,
+    multiplier: 1,
+    hintCost: 10,
     maxHintsPerQuestion: 2,
-    completionBonus: 100,
-    description: "×2 pts · 2 hints · +100 bonus"
+    completionBonus: 0,
+    description: "20 pts/question · 2 hints"
   }
 };
 
-// Apply difficulty multiplier and round to nearest integer
+// ─── BONUS ROUND CONFIG ───────────────────────────────────────────
+// After completing Phase 1, teams can attempt bonus questions from a
+// harder tier. Rookie → Pro questions, Pro → Legend questions, Legend → Elite questions (brand new tier).
+const BONUS_CONFIG = {
+  rookie: { fromDiff: 'pro',    label: '⚔️ Pro Bonus Round',    regularPts: 20, bossPts: 30, hintCost: 10 },
+  pro:    { fromDiff: 'legend', label: '👑 Legend Bonus Round',  regularPts: 20, bossPts: 30, hintCost: 10 },
+  legend: { fromDiff: 'elite',  label: '🌟 Elite Bonus Round',   regularPts: 20, bossPts: 30, hintCost: 10 },
+};
+
+// Bonus awarded for completing Phase 1 entirely
+const PHASE1_COMPLETION_BONUS = 50;
+
+// Points per question — depends on phase and question type
 function calcPts(base) {
-  const mult = DIFFICULTY[state.difficulty]?.multiplier ?? 1;
-  return Math.round(base * mult);
+  if (state.phase === 2) {
+    const bc = BONUS_CONFIG[state.difficulty];
+    // base is POINTS_REGULAR(20) or POINTS_BOSS(30) — map to bonus values
+    return base === POINTS_BOSS ? bc.bossPts : bc.regularPts;
+  }
+  return base; // Phase 1: flat points, no multiplier
+}
+
+// Current hint cost (differs in bonus round)
+function currentHintCost() {
+  if (state.phase === 2) return BONUS_CONFIG[state.difficulty].hintCost;
+  return DIFFICULTY[state.difficulty].hintCost;
+}
+
+// Max possible score for phase 1 (same for all modes: 26×20 + 4×30 = 640)
+const PHASE1_MAX = 26 * 20 + 4 * 30; // 640
+
+// Max possible score for phase 2 bonus round
+function phase2Max(difficulty) {
+  const bc = BONUS_CONFIG[difficulty];
+  return 26 * bc.regularPts + 4 * bc.bossPts;
+}
+
+// Maximum possible total score (used for leaderboard %)
+function calcMaxScore(difficulty) {
+  return PHASE1_MAX + phase2Max(difficulty);
 }
 
 const WORLDS = [
@@ -74,193 +110,204 @@ const POINTS_BOSS    = 30;
 const QUESTION_BANK = {
 
   // ╔═══════════════════════════════════════════════════════╗
-  // ║  ROOKIE  —  Solid fundamentals for BCA/MCA/Eng       ║
+  // ║  ROOKIE  —  Applied intermediate for BCA/MCA/Eng     ║
   // ╚═══════════════════════════════════════════════════════╝
   rookie: [
     // ── World 0: Binary Jungle (CS Fundamentals) ─────────────
-    { world:0, q:"What is the time complexity of Binary Search on a sorted array?",
-      opts:["O(n)",
-            "O(log n)",
-            "O(n²)",
-            "O(n log n)"],
-      ans:1, hints:["Think about what happens to the problem size after each comparison.","Each step eliminates half the remaining possibilities — what mathematical function describes repeated halving?"], boss:false },
+    { world:0, q:"What is the output of `print(0b1010 | 0b1100)` in Python?",
+      opts:["10","12","14","8"],
+      ans:2, hints:["The | operator is bitwise OR — a result bit is 1 if it is 1 in EITHER input.","0b1010 = 10, 0b1100 = 12. Align the bits and OR each column: 1110 in binary equals what decimal?"], boss:false },
 
-    { world:0, q:"Which number system uses base 16 with digits 0–9 and letters A–F?",
-      opts:["Octal","Decimal","Binary","Hexadecimal"],
-      ans:3, hints:["Memory addresses and color codes in web design commonly use this system.","When you run out of single digits, you borrow letters from the alphabet — this system needs six of them."], boss:false },
+    { world:0, q:"Which BST traversal visits nodes in ascending sorted order?",
+      opts:["Pre-order (Root → Left → Right)",
+            "Post-order (Left → Right → Root)",
+            "In-order (Left → Root → Right)",
+            "Level-order (breadth-first)"],
+      ans:2, hints:["In a BST, the left subtree is always smaller than the root and the right is always larger.","Following Left → Root → Right means you always visit the smallest reachable value before the root — what ordering does that produce?"], boss:false },
 
-    { world:0, q:"Which data structure follows Last-In-First-Out (LIFO) order?",
-      opts:["Queue","Heap","Stack","Deque"],
-      ans:2, hints:["Think about how you'd undo a series of actions in a text editor.","The exit order is the exact reverse of the entry order — what structure enforces that?"], boss:false },
+    { world:0, q:"What is the worst-case time complexity of QuickSort?",
+      opts:["O(n log n)","O(n²)","O(n)","O(log n)"],
+      ans:1, hints:["The worst case occurs when the pivot consistently creates highly unequal partitions.","Choosing the smallest or largest element as pivot on an already-sorted array triggers this — one partition has 0 elements, the other has n-1."], boss:false },
 
-    { world:0, q:"What is the result of bitwise AND between 0b1010 and 0b1100?",
-      opts:["0b1110",
-            "0b1000",
-            "0b0110",
-            "0b0010"],
-      ans:1, hints:["Write both numbers in binary columns and ask: where are both columns lit up simultaneously?","Only the bit position that is 1 in both inputs survives — every other position becomes 0."], boss:true },
+    { world:0, q:"What data structure should you use to implement BFS (Breadth-First Search)?",
+      opts:["Stack — for LIFO traversal order",
+            "Priority Queue — for weighted traversal",
+            "Queue — for FIFO traversal order",
+            "Heap — for minimum cost traversal"],
+      ans:2, hints:["BFS explores all nodes at depth d before exploring any node at depth d+1.","The structure that processes items in the order they were added (FIFO) guarantees level-by-level exploration."], boss:true },
 
-    { world:0, q:"In a min-heap, where is the smallest element always located?",
-      opts:["Last leaf node at the deepest level of the tree",
-            "Right child of the root, following heap insertion order",
-            "Root node",
-            "Leftmost leaf in the bottom row of the heap"],
-      ans:2, hints:["In this tree structure, every parent is guaranteed to be smaller than both its children.","The property is enforced from root to leaves — so the smallest value can only be in one place."], boss:false },
+    { world:0, q:"In two's complement, what is the 8-bit binary representation of -1?",
+      opts:["10000001","01111111","11111111","11111110"],
+      ans:2, hints:["To negate a number in two's complement: flip all bits, then add 1.","Start with 00000001 (which is +1). Flip all bits → 11111110. Add 1 → ?"], boss:false },
 
-    { world:0, q:"What does the acronym 'RAM' stand for?",
-      opts:["Read-Access Memory",
-            "Random-Access Memory",
-            "Rapid-Allocation Memory",
-            "Read-And-Modify Memory"],
-      ans:1, hints:["This memory loses everything when power is cut — it's volatile by nature.","The 'Random' in its name doesn't mean unpredictable — it means any address takes the same time to reach."], boss:false },
+    { world:0, q:"What is the space complexity of recursive Merge Sort?",
+      opts:["O(1) — it sorts in-place","O(log n) — only the recursion stack","O(n) — auxiliary arrays plus recursion stack","O(n²) — one copy per recursive call"],
+      ans:2, hints:["Merge Sort cannot sort in-place — it needs extra space to hold the two halves being merged.","The merge step creates a temporary array of size proportional to the input — what does that make the dominant space cost?"], boss:false },
 
-    { world:0, q:"Which of the following is NOT a characteristic of an abstract class in OOP?",
-      opts:["Can have constructors that subclasses call via super()",
-            "Cannot be instantiated directly with the new keyword",
-            "Can contain both abstract and fully implemented concrete methods",
-            "Cannot declare or use instance variables of any type"],
-      ans:3, hints:["The question asks what is NOT true — one of those four statements is wrong about abstract classes.","Abstract classes are almost identical to regular classes in what they can contain — only one specific action is forbidden."], boss:false },
+    { world:0, q:"Which condition causes a hash table's lookup to degrade to O(n) worst case?",
+      opts:["When the load factor equals exactly 0.75",
+            "When all keys hash to the same bucket",
+            "When the table size is a prime number",
+            "When keys are inserted in sorted order"],
+      ans:1, hints:["With separate chaining, the worst case is when all n elements end up in a single linked list.","If the hash function sends every key to the same slot, what does searching that slot cost?"], boss:false },
 
-    { world:0, q:"How many bits are in one byte?",
-      opts:["4 bits",
-            "6 bits",
-            "8 bits",
-            "16 bits"],
-      ans:2, hints:["All storage measurements — KB, MB, GB — are multiples of this single unit.","It takes exactly this many individual binary digits to represent a value from 0 to 255."], boss:false },
+    { world:0, q:"What is the result of the expression `3 << 2` (left shift by 2)?",
+      opts:["6","9","12","16"],
+      ans:2, hints:["A left shift by k positions is equivalent to multiplying by 2^k.","3 × 2² = 3 × 4 = ?"], boss:false },
 
     // ── World 1: Network Nebula (Networking & Security) ───────
-    { world:1, q:"Which OSI layer is responsible for end-to-end error recovery and flow control?",
-      opts:["Network","Data Link","Transport","Session"],
-      ans:2, hints:["TCP and UDP both live at this layer — one reliable, one fast.","The question says 'end-to-end' — that means the two communicating applications, not intermediate nodes."], boss:false },
+    { world:1, q:"What is the correct sequence of messages in the TCP 3-way handshake?",
+      opts:["SYN → ACK → SYN-ACK",
+            "SYN → SYN-ACK → ACK",
+            "ACK → SYN → SYN-ACK",
+            "SYN-ACK → SYN → ACK"],
+      ans:1, hints:["The client initiates, the server acknowledges AND responds in one combined message, then the client confirms.","Think: client says 'hello', server says 'hello + confirm', client says 'confirmed'."], boss:false },
 
-    { world:1, q:"What is the maximum number of usable host addresses in a /24 subnet?",
-      opts:["256 addresses",
-            "255 addresses",
-            "254 addresses",
-            "252 addresses"],
-      ans:2, hints:["A /24 subnet has 8 bits for hosts — calculate 2^8 first, then remember two addresses are always off-limits.","One reserved address names the network itself; the other is used to reach every device simultaneously."], boss:false },
+    { world:1, q:"Which OSI layer does a router operate at?",
+      opts:["Layer 1 — Physical",
+            "Layer 2 — Data Link",
+            "Layer 3 — Network",
+            "Layer 4 — Transport"],
+      ans:2, hints:["Routers make forwarding decisions based on IP addresses — not MAC addresses.","IP addresses live at this layer — the same one a router inspects to decide where to send a packet."], boss:false },
 
-    { world:1, q:"Which protocol translates domain names into IP addresses?",
-      opts:["DHCP","ARP","DNS","NAT"],
-      ans:2, hints:["Every time you type a website name, your computer consults this protocol before anything else happens.","It's the internet's directory service — names in, numbers out."], boss:false },
+    { world:1, q:"What does ARP (Address Resolution Protocol) do?",
+      opts:["Dynamically assigns IP addresses to devices on the network",
+            "Maps an IP address to the corresponding MAC (hardware) address",
+            "Encrypts packets before transmission over a local network",
+            "Resolves domain names to IP addresses for routing"],
+      ans:1, hints:["Your device knows the destination IP but needs the physical hardware address to actually send the Ethernet frame.","ARP broadcasts: 'Who has this IP? Tell me your MAC address.'"], boss:true },
 
-    { world:1, q:"What type of attack passively captures network packets between two systems?",
-      opts:["Phishing","Packet Sniffing","DDoS","SQL Injection"],
-      ans:1, hints:["The attacker doesn't send anything or change anything — they only observe.","Tools like Wireshark perform this legitimately; attackers misuse the same capability."], boss:true },
+    { world:1, q:"What is the key difference between TCP and UDP?",
+      opts:["TCP is faster than UDP for all types of traffic",
+            "TCP works only on LANs; UDP works across the internet",
+            "TCP guarantees ordered, reliable delivery; UDP does not",
+            "UDP uses IP addressing; TCP uses MAC addressing"],
+      ans:2, hints:["One protocol confirms every packet arrived and retransmits lost ones; the other sends and forgets.","Live video calls prefer speed over guaranteed delivery — which protocol fits that, and which is the other?"], boss:false },
 
-    { world:1, q:"Which of the following is a symmetric encryption algorithm?",
-      opts:["RSA","ECC","AES","DSA"],
-      ans:2, hints:["One of these four algorithms uses a single shared secret for both directions — the others use key pairs.","If both sender and receiver must exchange a secret key beforehand, that's the one you want."], boss:false },
+    { world:1, q:"What happens when a packet's TTL (Time To Live) field reaches 0?",
+      opts:["The packet is automatically retransmitted by the original sender",
+            "The packet is discarded and an ICMP error message is sent back to the sender",
+            "The packet is forwarded to the default gateway as a fallback",
+            "The TTL is reset to 64 by the next router in the path"],
+      ans:1, hints:["TTL prevents packets from looping forever in a network — when it expires, the router must act.","The router drops the packet and sends a control message back to the source — what protocol handles that notification?"], boss:false },
 
-    { world:1, q:"What does a firewall primarily do?",
-      opts:["Speeds up network traffic by caching frequently visited destinations",
-            "Filters incoming and outgoing traffic based on pre-defined security rules",
-            "Assigns dynamic IP addresses to devices joining the network",
-            "Resolves domain names to IP addresses for connected clients"],
-      ans:1, hints:["This device sits at a network boundary and makes decisions about every packet that tries to cross.","It operates based on pre-configured rules — not content inspection, just traffic policy."], boss:false },
+    { world:1, q:"What does NAT (Network Address Translation) primarily enable?",
+      opts:["Encrypting all traffic between a client and a web server",
+            "Multiple devices on a private network sharing one public IP address",
+            "Resolving domain names to IP addresses for internet routing",
+            "Distributing incoming traffic across multiple backend servers"],
+      ans:1, hints:["Your home router has one public IP but lets every device in the house reach the internet simultaneously.","It rewrites private addresses (192.168.x.x) to the single public address before traffic leaves the local network."], boss:false },
 
-    { world:1, q:"What is the default port number for HTTPS?",
-      opts:["80",
-            "8080",
-            "443",
-            "22"],
-      ans:2, hints:["This port number is as important to memorise as port 80 — it's the secure version of the same service.","The number sits between 400 and 500 and is divisible by 1."], boss:false },
+    { world:1, q:"You are designing a live video streaming app. Which transport protocol should you use and why?",
+      opts:["TCP — retransmission keeps the stream high quality",
+            "ICMP — it is designed for real-time media delivery",
+            "UDP — low latency matters more than guaranteed delivery",
+            "HTTP — it natively handles streaming content"],
+      ans:2, hints:["For live video, a retransmitted packet from 2 seconds ago is useless — you'd rather skip it and move on.","The protocol that sacrifices reliability for speed is the right choice here."], boss:false },
 
-    { world:1, q:"What does VPN stand for?",
-      opts:["Virtual Private Node",
-            "Virtual Public Network",
-            "Virtual Private Network",
-            "Verified Packet Network"],
-      ans:2, hints:["This technology creates a secure, encrypted connection across an untrusted public network.","Two of the three words in its full name are 'Virtual' and 'Private'."], boss:false },
+    { world:1, q:"How many usable host addresses does a /28 subnet provide?",
+      opts:["28 usable hosts",
+            "16 usable hosts",
+            "14 usable hosts",
+            "30 usable hosts"],
+      ans:2, hints:["A /28 mask leaves 4 bits for the host portion — calculate 2^4 first, then subtract the two reserved addresses.","2^4 = 16 total addresses. Network address and broadcast address are reserved — how many remain?"], boss:false },
 
     // ── World 2: Code Citadel (Programming & Algorithms) ─────
-    { world:2, q:"In Python, what is the output of: print(type([]))?",
-      opts:["<class 'tuple'>",
-            "<class 'array'>",
-            "<class 'list'>",
-            "<class 'set'>"],
-      ans:2, hints:["Python has exactly one collection type whose literal syntax uses square brackets.","Run `[]` in your head — what does Python call that thing?"], boss:false },
+    { world:2, q:"What is the output of `[x**2 for x in range(5) if x % 2 == 0]` in Python?",
+      opts:["[0, 4, 16]","[1, 9, 25]","[0, 1, 4, 9, 16]","[4, 16]"],
+      ans:0, hints:["The `if x % 2 == 0` part filters to only even numbers in range(5).","Even numbers in range(5) are 0, 2, and 4. Square each of those."], boss:false },
 
-    { world:2, q:"Which sorting algorithm uses divide-and-conquer and has O(n log n) average-case complexity?",
-      opts:["Bubble Sort",
-            "Selection Sort",
-            "Insertion Sort",
-            "Quick Sort"],
-      ans:3, hints:["This algorithm's name is literally a positive adjective about speed.","It divides the array around a chosen element, then recursively sorts each side."], boss:false },
+    { world:2, q:"What is a closure in programming?",
+      opts:["A function that calls itself recursively until a base case",
+            "A function that retains access to its enclosing scope's variables after the outer function has returned",
+            "A design pattern that prevents subclasses from overriding parent methods",
+            "A block of code that catches and handles runtime exceptions"],
+      ans:1, hints:["The inner function 'closes over' variables from the outer function's scope.","Even after the outer function finishes executing, the inner function still remembers and can use those captured variables."], boss:false },
 
-    { world:2, q:"In SQL, which clause filters rows BEFORE grouping?",
-      opts:["HAVING","FILTER","WHERE","GROUP BY"],
-      ans:2, hints:["SQL executes clauses in a specific order — this filtering clause runs before grouping happens.","HAVING filters groups; this clause filters individual rows before they're ever grouped."], boss:false },
+    { world:2, q:"What does `===` check in JavaScript compared to `==`?",
+      opts:["=== checks value only; == checks value and type",
+            "=== checks both value and type strictly; == coerces types before comparing",
+            "=== is for objects; == is for primitive values",
+            "They are identical — === is an alias for == in modern JavaScript"],
+      ans:1, hints:["JavaScript's == will convert types to make a comparison work — '5' == 5 is true.","The triple equals never converts types — both sides must match exactly in value AND type."], boss:false },
 
-    { world:2, q:"What design pattern ensures a class has only one instance with a global access point?",
-      opts:["Factory","Observer","Decorator","Singleton"],
-      ans:3, hints:["This pattern's entire purpose is enforcing a strict limit on object creation.","The number that defines this pattern is literally embedded in its name."], boss:true },
+    { world:2, q:"What is a foreign key constraint in a relational database?",
+      opts:["A hashed primary key for faster lookup in large tables",
+            "A column whose value must match a primary key in another table, enforcing referential integrity",
+            "An index auto-created on every column used in JOIN queries",
+            "A constraint that prevents NULL values from being inserted"],
+      ans:1, hints:["It creates a relationship between two tables — a value must exist in one table before it can be referenced in another.","You cannot insert an order for a customer_id that doesn't exist in the customers table — what constraint enforces that?"], boss:false },
 
-    { world:2, q:"What does the 'final' keyword do in Java when applied to a variable?",
-      opts:["Makes it static",
-            "Makes it thread-safe",
-            "Makes it immutable",
-            "Moves it to heap memory"],
-      ans:2, hints:["Other languages use 'const' or 'val' for this — Java has its own keyword.","After the first assignment, any attempt to reassign throws a compile error."], boss:false },
+    { world:2, q:"What is the output of the following Python code?\ndef f(x, lst=[]):\n    lst.append(x)\n    return lst\nprint(f(1))\nprint(f(2))",
+      opts:["[1]  then  [2]",
+            "[1]  then  [1, 2]",
+            "[1]  then  [2, 1]",
+            "TypeError — mutable default argument not allowed"],
+      ans:1, hints:["Python evaluates default argument values once when the function is defined — not each time it is called.","The same list object is reused on every call. After f(1) it contains [1], so what does f(2) append to?"], boss:true },
 
-    { world:2, q:"What is the output of 5 // 2 in Python?",
-      opts:["2.5",
-            "2",
-            "3",
-            "2.0"],
-      ans:1, hints:["Python has two division operators — one gives you the exact decimal, the other always rounds down.","5 ÷ 2 is mathematically 2.5 — what whole number is immediately below that?"], boss:false },
+    { world:2, q:"Which Git command creates a new branch AND switches to it in one step?",
+      opts:["git branch new-feature",
+            "git checkout -b new-feature",
+            "git merge new-feature",
+            "git stash new-feature"],
+      ans:1, hints:["You need a single command that does two things: creates the branch and moves HEAD to it.","The -b flag triggers creation — without it, checkout only switches to an existing branch."], boss:false },
 
-    { world:2, q:"What HTTP status code means the requested resource was not found on the server?",
-      opts:["200 OK",
-            "301 Moved Permanently",
-            "403 Forbidden",
-            "404 Not Found"],
-      ans:3, hints:["You've almost certainly encountered this number on a broken link somewhere on the web.","It's the most famous HTTP error code — everyone who uses the internet has seen it."], boss:false },
+    { world:2, q:"What does the REST architectural constraint 'stateless' mean?",
+      opts:["The server caches all session data to speed up repeated requests",
+            "Each HTTP request must be self-contained; the server stores no client session state between requests",
+            "REST APIs cannot store any data — they only read from databases",
+            "The client must not maintain any local state between API calls"],
+      ans:1, hints:["Every single request stands alone — the server cannot rely on remembering anything from previous requests.","This constraint makes REST services easy to scale horizontally — any server instance can handle any request without shared session state."], boss:false },
 
-    { world:2, q:"What is a 'null pointer exception' caused by?",
-      opts:["Stack overflow",
-            "Integer overflow",
-            "Dereferencing a null reference",
-            "Array index out of bounds"],
-      ans:2, hints:["The variable has been declared but it doesn't point to any actual object in memory.","Trying to call a method on 'nothing' triggers this — the runtime doesn't know where to look."], boss:false },
+    { world:2, q:"Which HTTP method is idempotent AND is used to fully replace an existing resource?",
+      opts:["POST — creates a new resource each time",
+            "PATCH — partially modifies an existing resource",
+            "PUT — fully replaces an existing resource idempotently",
+            "DELETE — removes and recreates the resource"],
+      ans:2, hints:["Idempotent means calling it once or ten times produces the same server state.","POST is NOT idempotent (creates a new resource each call). PUT replaces the entire resource — calling it repeatedly with the same body always yields the same result."], boss:false },
 
     // ── World 3: AI Realm (AI & Emerging Tech) ────────────────
-    { world:3, q:"What does the activation function do in a neural network layer?",
-      opts:["Initializes weight values before training begins using random distributions",
-            "Loads and preprocesses training data into mini-batches for each epoch",
-            "Introduces non-linearity so the network can learn complex, non-linear patterns",
-            "Reduces overfitting by randomly zeroing out neuron outputs during training"],
-      ans:2, hints:["Without this, stacking 100 layers is mathematically equivalent to stacking just one.","ReLU, Sigmoid, and Tanh are all examples — what property do they all introduce?"], boss:false },
+    { world:3, q:"What is the key difference between supervised and unsupervised learning?",
+      opts:["Supervised uses GPUs; unsupervised uses CPUs",
+            "Supervised trains on labelled data to predict outputs; unsupervised finds patterns in unlabelled data",
+            "Supervised only works for classification; unsupervised only for regression",
+            "Supervised always requires more data than unsupervised"],
+      ans:1, hints:["One approach needs human-labelled examples with the correct answer attached; the other gets raw data and discovers structure on its own.","Training a spam filter (labelled spam/not-spam) versus clustering customers by behaviour — which approach is which?"], boss:false },
 
-    { world:3, q:"Which technique prevents overfitting by randomly disabling neurons during training?",
-      opts:["Batch Normalization","Data Augmentation","Dropout","Weight Initialization"],
-      ans:2, hints:["During each training step, some neurons are randomly silenced — forcing others to compensate.","The technique's name is completely literal about what happens to certain neurons."], boss:false },
+    { world:3, q:"What is a confusion matrix used for?",
+      opts:["Measuring the computational complexity of a model's training algorithm",
+            "Showing correct and incorrect predictions per class to evaluate a classifier",
+            "Measuring correlation between input features and the target variable",
+            "Testing a model's ability to generalise across multiple datasets"],
+      ans:1, hints:["It's a grid that cross-references predicted labels against actual labels.","From it you can directly read off true positives, false positives, true negatives, and false negatives."], boss:false },
 
-    { world:3, q:"What does 'RAG' stand for in modern AI system design?",
-      opts:["Recursive Attention Graph",
-            "Retrieval-Augmented Generation",
-            "Random Activation Gate",
-            "Reinforced Auto-Generative"],
-      ans:1, hints:["This technique lets an AI look something up before answering, rather than relying on memory alone.","The acronym's three letters stand for: Retrieval, Augmented, Generation."], boss:false },
+    { world:3, q:"What is the vanishing gradient problem in deep neural networks?",
+      opts:["Gradients become too large and cause numerical overflow during backpropagation",
+            "Gradients shrink exponentially through many layers, causing early layers to stop learning",
+            "The learning rate decays to zero too quickly, preventing convergence",
+            "Batch normalisation removes gradient information before it reaches the input layer"],
+      ans:1, hints:["In very deep networks, the gradient signal used to update early layers gets multiplied by many small numbers as it travels backwards.","Multiplying many values less than 1 together repeatedly produces a value near zero — what does a near-zero gradient do to learning in that layer?"], boss:false },
 
-    { world:3, q:"Which metric best evaluates a binary classifier on a heavily imbalanced dataset?",
-      opts:["Accuracy",
-            "Mean Squared Error",
-            "F1 Score",
-            "R-Squared"],
-      ans:2, hints:["When one class appears 95% of the time, a model that always guesses that class looks 95% accurate — this metric exposes the lie.","It's the harmonic mean of two other metrics: one about false positives, one about false negatives."], boss:true },
+    { world:3, q:"What best describes overfitting in a machine learning model?",
+      opts:["The model performs well on training data but poorly on unseen test data",
+            "The model is too simple to capture the patterns in the training data",
+            "The model converges too slowly because the learning rate is set too high",
+            "The model's predictions are consistently biased in the same direction"],
+      ans:0, hints:["The model has memorised the training data rather than learning general patterns.","It knows the exact exam answers from practice papers but fails completely when it sees genuinely new questions."], boss:true },
 
-    { world:3, q:"What is 'transfer learning' in machine learning?",
-      opts:["Moving trained model weights between different hardware accelerators",
-            "Reusing a model trained on one task as a starting point for a related task",
-            "Passing gradient updates between layers during the backpropagation step",
-            "Converting a model from one framework format such as PyTorch to TensorFlow"],
-      ans:1, hints:["Why train from zero when someone already did the hard part? This technique builds on existing work.","A model trained on millions of web pages can be adapted for medical diagnosis using this."], boss:false },
+    { world:3, q:"What does k-fold cross-validation achieve?",
+      opts:["Trains k separate models and picks the one with the highest training accuracy",
+            "Splits data into k parts, trains k times each using a different part as validation",
+            "Reduces the dataset to k samples to speed up training on large datasets",
+            "Applies k different regularisation strengths and picks the best result"],
+      ans:1, hints:["It's a technique to get a more reliable estimate of how well a model generalises to unseen data.","With k=5: the data is split into 5 equal parts, the model is trained 5 times — each time one different part is the validation set."], boss:false },
 
-    { world:3, q:"What is the name of OpenAI's flagship series of large language models?",
-      opts:["DALL-E","Whisper","Codex","GPT"],
-      ans:3, hints:["OpenAI's most well-known product family — the one that sparked the current AI wave — uses this name.","The three-letter acronym stands for Generative, Pre-trained, and one more word that describes its architecture."], boss:false },
-
+    { world:3, q:"What is one-hot encoding used for in machine learning?",
+      opts:["Normalising numerical features to the range [0, 1]",
+            "Converting categorical variables into binary vectors for use in ML models",
+            "Encrypting training data to prevent model inversion attacks",
+            "Compressing high-dimensional embeddings into lower-dimensional space"],
+      ans:1, hints:["ML models work with numbers — but categories like 'Red', 'Blue', 'Green' aren't numbers.","Each category gets its own binary column. For a given row, exactly one column is 1 and all others are 0."], boss:false },
 
   // ╔═══════════════════════════════════════════════════════╗
   // ║  PRO  —  Intermediate-Advanced for competitive teams ║
@@ -689,6 +736,223 @@ const QUESTION_BANK = {
             "Creative and stochastic behaviours that vary with the model's temperature sampling parameter"],
       ans:1, hints:["These abilities aren't gradual improvements — they appear abruptly at a certain scale threshold.","Chain-of-thought reasoning and multi-step arithmetic suddenly appeared in large models — no one designed them in."], boss:false },
 
+  ],
+
+  // ╔═══════════════════════════════════════════════════════╗
+  // ║  ELITE  —  Expert tier, used ONLY for Legend Phase 2  ║
+  // ╚═══════════════════════════════════════════════════════╝
+  elite: [
+    // ── World 0: Binary Jungle (Systems & Advanced Algorithms) ──
+    { world:0, q:"What is the amortised time complexity of a single push into a dynamic array that doubles in size on overflow?",
+      opts:["O(n) — because occasional resizes cost O(n)",
+            "O(log n) — due to the logarithmic doubling strategy",
+            "O(1) amortised — resize costs are spread across all insertions",
+            "O(n²) — because copying increases cost each time"],
+      ans:2, hints:["Occasional O(n) resizes happen exponentially rarely — between each resize, the array absorbs that cost across all future cheap inserts.","If you do n pushes total and the total work is proportional to n, the per-operation average is constant."], boss:false },
+
+    { world:0, q:"Which algorithm correctly finds shortest paths in a graph with negative edge weights (no negative cycles)?",
+      opts:["Dijkstra with a Fibonacci heap for O(E + V log V)",
+            "Bellman-Ford with O(V × E) by relaxing all edges V-1 times",
+            "A* search with an admissible heuristic that handles negatives",
+            "Floyd-Warshall restricted to positive weights only"],
+      ans:1, hints:["Dijkstra's greedy assumption breaks with negative edges — it can't revise a 'finalised' shortest path.","This algorithm relaxes every edge V-1 times and can also detect negative cycles — what is it?"], boss:false },
+
+    { world:0, q:"What is cache thrashing and when does it occur?",
+      opts:["The CPU cache flushes to RAM on every clock cycle causing a stall",
+            "Frequent cache misses because the working set exceeds cache size, causing constant eviction and reload",
+            "A deadlock where two threads each wait for the other's cache line indefinitely",
+            "Write-back bottleneck where cache writes are slower than cache reads"],
+      ans:1, hints:["It happens when the data actively used doesn't fit in the available cache.","The processor evicts lines it needs again immediately — creating a cycle of misses with almost no hits."], boss:false },
+
+    { world:0, q:"What does the CAP theorem state about distributed systems?",
+      opts:["A distributed system can achieve Consistency, Availability, and Partition tolerance simultaneously",
+            "A distributed system can guarantee at most two of: Consistency, Availability, Partition tolerance",
+            "CAP applies only to relational databases — NoSQL systems are exempt",
+            "Partition tolerance is optional when network uptime exceeds 99.9%"],
+      ans:1, hints:["Network partitions are a real-world inevitability — when one occurs, you must choose between the other two properties.","No distributed system can be perfectly consistent, always available, AND fault-tolerant simultaneously — pick two."], boss:true },
+
+    { world:0, q:"What is a Bloom filter and what is its key trade-off?",
+      opts:["An exact membership set using O(1) space per stored element",
+            "A probabilistic membership structure that allows false positives but never false negatives",
+            "A sorted set with O(log n) insert and O(1) lookup using bit arrays",
+            "A lock-free concurrent hash map for multi-threaded lookups"],
+      ans:1, hints:["It can definitively say 'not in the set' — but can only say 'probably in the set', never 'definitely in the set'.","The trade-off is space efficiency at the cost of occasional false positives — it never fails to report an element that IS there."], boss:false },
+
+    { world:0, q:"What is the difference between a process and a thread at the OS level?",
+      opts:["Processes share the same address space; threads each have isolated memory",
+            "Threads share the process address space; processes have isolated memory and resources",
+            "The OS scheduler treats processes and threads identically — there is no difference",
+            "Threads cannot perform I/O operations; only processes can make system calls"],
+      ans:1, hints:["One is a heavyweight execution unit with its own memory space; the other is lighter and lives inside the first.","Multiple threads communicate directly via shared memory — why is that easier than inter-process communication?"], boss:false },
+
+    { world:0, q:"For a greedy algorithm to guarantee an optimal solution, which two properties must hold?",
+      opts:["Overlapping subproblems and memoizability (same as dynamic programming)",
+            "The greedy choice property and optimal substructure",
+            "Polynomial-time solvability (P class) and monotone objective function",
+            "DAG graph structure and non-negative edge weights"],
+      ans:1, hints:["Not every problem can be solved greedily — there must be a mathematical guarantee.","Two conditions: making the locally best choice never rules out a globally optimal solution (greedy choice), and optimal subproblem solutions compose into a global optimum (optimal substructure)."], boss:false },
+
+    { world:0, q:"In a B-tree of order m, what is the maximum number of keys a single node can hold?",
+      opts:["m keys","m − 1 keys","2m keys","m + 1 keys"],
+      ans:1, hints:["B-tree order defines the maximum number of children, not keys — keys and children are related by one.","If a node can have at most m children, it holds exactly one fewer key than that."], boss:false },
+
+    // ── World 1: Network Nebula (Advanced Security & Protocols) ──
+    { world:1, q:"What is a timing side-channel attack?",
+      opts:["A flood attack that exhausts server resources with high-rate requests",
+            "An attack that infers secret information by measuring how long cryptographic operations take",
+            "A man-in-the-middle attack that introduces delays to disrupt session synchronisation",
+            "A replay attack reusing captured auth tokens within a valid time window"],
+      ans:1, hints:["The attack doesn't break the math of cryptography — it exploits physical implementation details.","If decryption takes slightly different amounts of time depending on secret key bits, that timing difference leaks information."], boss:false },
+
+    { world:1, q:"What does Perfect Forward Secrecy (PFS) guarantee?",
+      opts:["Past session traffic cannot be decrypted even if the server's long-term private key is later compromised",
+            "Every individual packet is encrypted with a unique key so packet loss doesn't affect decryption",
+            "Authentication is verified forward-in-time to prevent pre-authentication attacks",
+            "The session key is derived from the server certificate so it is always recoverable"],
+      ans:0, hints:["The key insight is ephemeral session keys that are generated fresh and never stored long-term.","Even if an attacker records today's encrypted traffic and later steals the server's private key, they still cannot decrypt past sessions."], boss:false },
+
+    { world:1, q:"In TLS 1.3, what is the security trade-off of the 0-RTT resumption feature?",
+      opts:["Eliminates the handshake entirely; forward secrecy is permanently broken for resumed sessions",
+            "Allows data to be sent on the first message using a cached session key; vulnerable to replay attacks",
+            "Reduces key size from 256-bit to 128-bit; slightly weaker encryption for faster resumption",
+            "Compresses the certificate chain; revocation checking is disabled for resumed sessions"],
+      ans:1, hints:["0-RTT means the client sends application data immediately without waiting for a round-trip handshake.","If an attacker captures that first message containing application data, what could they do with it?"], boss:false },
+
+    { world:1, q:"What is BGP (Border Gateway Protocol) and what problem does it solve?",
+      opts:["A link-state protocol inside a single ISP's network for fast internal convergence",
+            "The inter-domain routing protocol that exchanges reachability information between autonomous systems",
+            "A distance-vector protocol replacing OSPF in modern data centre fabric networks",
+            "A protocol that dynamically assigns IP addresses to enterprise devices"],
+      ans:1, hints:["This is the routing protocol that holds the entire internet together at the highest level.","Each ISP is an autonomous system — this protocol decides how traffic flows between them globally."], boss:true },
+
+    { world:1, q:"What is certificate pinning and why is it used in mobile apps?",
+      opts:["Storing the server's expected certificate or public key in the client to block MITM attacks",
+            "Permanently revoking a certificate by attaching it to a certificate revocation list",
+            "Binding a TLS certificate to a specific IP to prevent hostname-based spoofing",
+            "Caching expired certificates in the client to extend their validity period"],
+      ans:0, hints:["The client refuses to accept a server certificate that doesn't match the value it was built with.","Even if an attacker presents a certificate signed by a trusted CA, pinning detects the unexpected mismatch."], boss:false },
+
+    { world:1, q:"What is DNS cache poisoning and how does DNSSEC mitigate it?",
+      opts:["Flooding DNS servers with queries; DNSSEC rate-limits to prevent exhaustion",
+            "Injecting forged DNS records into a resolver's cache; DNSSEC uses cryptographic signatures to verify record authenticity",
+            "Intercepting DNS queries in transit; DNSSEC encrypts all DNS traffic end-to-end like HTTPS",
+            "Corrupting zone files on authoritative servers; DNSSEC maintains redundant zone replicas"],
+      ans:1, hints:["The attack makes a recursive resolver cache a malicious IP as the address for a legitimate domain.","DNSSEC adds digital signatures to DNS records — a resolver can verify the record hasn't been tampered with."], boss:false },
+
+    { world:1, q:"What is a VLAN (Virtual LAN) and why is it used?",
+      opts:["A virtual IP range used by cloud providers for multi-tenant network isolation",
+            "A logical network segment that isolates broadcast domains within a physical switch infrastructure",
+            "A VPN tunnel between two geographically separated offices over the public internet",
+            "A protocol for automatically assigning IP addresses across enterprise networks"],
+      ans:1, hints:["A single physical switch can behave as multiple isolated switches using this technology.","Finance and HR on the same physical switch can be isolated from each other in separate broadcast domains — without separate hardware."], boss:false },
+
+    { world:1, q:"What is the difference between IDS and IPS in network security?",
+      opts:["IDS encrypts traffic; IPS decrypts and inspects it before forwarding",
+            "IDS detects and alerts on suspicious activity; IPS detects AND actively blocks or drops malicious traffic",
+            "IPS is a newer term that has fully replaced IDS in modern network architectures",
+            "IDS operates at Layer 7; IPS operates only at Layer 3 of the OSI model"],
+      ans:1, hints:["The D stands for Detection; the P stands for Prevention — the names literally describe the difference.","An IDS is passive — it watches and alerts. An IPS is inline and can take action."], boss:false },
+
+    // ── World 2: Code Citadel (Advanced Arch & Distributed Systems) ──
+    { world:2, q:"What is the difference between optimistic and pessimistic concurrency control in databases?",
+      opts:["Optimistic locks rows immediately; pessimistic checks for conflicts only at commit",
+            "Pessimistic locks rows upfront preventing conflicts; optimistic allows progress and detects conflicts only at commit",
+            "Optimistic is for reads only; pessimistic is for writes only",
+            "There is no practical difference — both produce identical transaction throughput"],
+      ans:1, hints:["One assumes conflicts are rare and only checks at the end — the other assumes conflicts are likely and prevents them upfront.","Optimistic concurrency suits read-heavy workloads; pessimistic suits high-contention write-heavy scenarios."], boss:false },
+
+    { world:2, q:"What is the difference between a mutex and a semaphore?",
+      opts:["A mutex can be released by any thread; a semaphore can only be released by its acquirer",
+            "A mutex is a binary lock owned by the acquiring thread; a semaphore is a counter controlling concurrent access by multiple threads",
+            "Semaphores are OS kernel constructs only; mutexes are userspace-only",
+            "A mutex prevents deadlocks by design; semaphores always risk deadlock"],
+      ans:1, hints:["One is strictly binary (locked/unlocked) and is owned — the other is a counter used for signalling or limiting concurrent access.","A car park with 10 spaces uses a semaphore (count of 10) — it doesn't care which thread takes which spot, just that no more than 10 enter."], boss:false },
+
+    { world:2, q:"What are the four Coffman conditions required for a deadlock to occur?",
+      opts:["Starvation, hold-and-wait, circular wait, preemption",
+            "Mutual exclusion, hold-and-wait, no preemption, circular wait",
+            "Shared memory, busy-waiting, priority inversion, lock contention",
+            "Data dependency, cache coherence failure, write-after-read, read-after-write"],
+      ans:1, hints:["All four must hold simultaneously — breaking any single one prevents deadlock.","Think: resources can't be shared (mutual exclusion), threads hold and wait for more (hold-and-wait), nothing is taken by force (no preemption), and threads form a cycle of waiting (circular wait)."], boss:true },
+
+    { world:2, q:"What is the purpose of a load balancer, and what is the key difference between L4 and L7 load balancing?",
+      opts:["Load balancers assign static IPs; L4 balances by CPU load; L7 balances by memory",
+            "Load balancers distribute traffic across servers; L4 routes by TCP/IP info; L7 routes by HTTP content",
+            "L4 load balancing is deprecated; all modern load balancers operate at L7 only",
+            "Load balancers provide TLS; L4 uses SSL; L7 uses TLS 1.3 exclusively"],
+      ans:1, hints:["The layer number indicates which OSI layer the balancer inspects to make its routing decision.","An L7 balancer can route /api to one server pool and /static to another — L4 can't do that because it never reads HTTP."], boss:false },
+
+    { world:2, q:"What is the SOLID principle of Dependency Inversion?",
+      opts:["High-level modules should depend directly on low-level concrete implementations for tight integration",
+            "High-level modules should not depend on low-level modules; both should depend on abstractions",
+            "All dependencies must be injected at runtime using a DI framework",
+            "Each module should have at most one dependency to minimise coupling"],
+      ans:1, hints:["It's about the direction of the dependency arrow — which layer defines the interfaces?","Your business logic shouldn't know about your specific database driver — it should depend on an abstract repository interface that the driver implements."], boss:false },
+
+    { world:2, q:"What is event sourcing as an architectural pattern?",
+      opts:["An observer pattern where UI components subscribe to DOM events for reactive updates",
+            "Storing application state as a sequence of immutable events rather than only the current state snapshot",
+            "A pub/sub messaging architecture where producers push to consumer queues asynchronously",
+            "Caching external API responses as events for offline-first application support"],
+      ans:1, hints:["Instead of storing 'current balance = $500', you store every transaction that produced that balance.","You can replay the entire event log to reconstruct any past state — audit trails and time-travel debugging come for free."], boss:false },
+
+    { world:2, q:"What is memoization, and how does it differ from tabulation (bottom-up DP)?",
+      opts:["Memoization fills a table bottom-up from small to large; tabulation is top-down with recursion",
+            "Memoization is top-down recursion with result caching; tabulation fills a table iteratively bottom-up",
+            "They are the same technique with different names in different communities",
+            "Memoization always uses less memory than tabulation because it only stores the final answer"],
+      ans:1, hints:["One starts with the full problem, breaks it recursively, and caches results; the other starts with the smallest subproblems and builds up iteratively.","Memoization is lazy — it only computes subproblems that are actually needed during recursion."], boss:false },
+
+    { world:2, q:"What is CQRS (Command Query Responsibility Segregation)?",
+      opts:["A caching strategy routing reads and writes to separate cache tiers",
+            "An architecture separating write operations (commands) from read operations (queries) into distinct models",
+            "A database normalisation technique eliminating update anomalies in write-heavy schemas",
+            "A load-balancing algorithm routing commands to primary nodes and queries to replicas"],
+      ans:1, hints:["The write path and read path are completely decoupled — each can be optimised and scaled independently.","Commands mutate state; queries only read state — this pattern formalises that distinction into separate models."], boss:false },
+
+    // ── World 3: AI Realm (Expert AI/ML) ──────────────────────
+    { world:3, q:"What is the difference between RLHF and Constitutional AI (CAI) as alignment techniques?",
+      opts:["RLHF uses a reward model trained on human preferences; CAI uses AI self-critique guided by written principles to reduce dependence on human labellers",
+            "RLHF is fully unsupervised; CAI requires human labels for every training example",
+            "CAI was developed by OpenAI; RLHF was developed by Anthropic for Claude specifically",
+            "RLHF is stronger because it uses human judgement directly on every output"],
+      ans:0, hints:["Both aim to align AI behaviour — but one uses human raters to score outputs while the other tries to reduce that dependence.","CAI writes a set of principles (a 'constitution') and has the model critique its own outputs against them — reducing labeller cost."], boss:false },
+
+    { world:3, q:"What are the roles of Query (Q), Key (K), and Value (V) matrices in Transformer self-attention?",
+      opts:["K stores positions; Q stores token identity; V stores precomputed attention weights",
+            "Q is the 'question' from the current token; K is what other tokens 'advertise'; V is the content retrieved when Q and K match",
+            "K and Q compute cosine similarity for retrieval; V is the output after layer normalisation",
+            "Q is trained during fine-tuning; K and V are frozen from pretraining"],
+      ans:1, hints:["Think of it as a soft database lookup: Q is the search query, K is the index of each entry, V is the content to retrieve.","The dot product of Q and Kᵀ gives attention scores — high-scoring (V) items contribute more to the output."], boss:false },
+
+    { world:3, q:"What is the O(n²) complexity problem with standard Transformer attention and how does sparse attention address it?",
+      opts:["Standard attention is O(n) in memory; sparse reduces this to O(log n) using fixed patterns",
+            "Standard attention is O(n²) in sequence length because every token attends to every other; sparse attention limits each token to a subset of others",
+            "Sparse attention solves the vanishing gradient problem by skipping alternate attention layers",
+            "Standard attention is O(n³); sparse attention parallelises across GPU cores to reduce wall-clock time"],
+      ans:1, hints:["In full attention, a sequence of n tokens requires computing n × n attention scores — that grows quadratically.","Long-document models can't afford this — so they restrict each token to attending to nearby tokens or a small fixed set of global tokens."], boss:false },
+
+    { world:3, q:"What causes hallucination in LLMs, and why can't the model simply 'look up' the correct answer?",
+      opts:["Hallucination is caused by vanishing gradients corrupting factual weights during deep training",
+            "The model predicts statistically likely next tokens — there is no separate factual lookup mechanism to verify correctness",
+            "Hallucination is a fine-tuning artefact; base pretrained models do not hallucinate",
+            "Hallucination is a prompt injection vulnerability triggered by adversarial inputs"],
+      ans:1, hints:["The model is a next-token predictor — it generates what sounds likely given context, not what it has 'verified' against a ground-truth source.","It confidently produces text because the token sequence is probable, even when the underlying claim is factually wrong."], boss:true },
+
+    { world:3, q:"What is the KV cache in Transformer inference and why is it critical for performance?",
+      opts:["A cache of quantised model weights in GPU VRAM to avoid re-loading weights between requests",
+            "A cache storing key and value projections from prior tokens so each new token only needs one forward pass",
+            "A database cache of tokenised training examples for efficient mini-batch retrieval",
+            "A gradient accumulation cache for micro-batch backpropagation during fine-tuning"],
+      ans:1, hints:["Without it, generating token N would require recomputing attention over all N-1 previous tokens — that's O(n²) total work.","By caching the K and V projections computed in earlier steps, each new token only needs to compute its own Q and attend to the cached K/V."], boss:false },
+
+    { world:3, q:"What is LoRA (Low-Rank Adaptation) and why does it enable parameter-efficient fine-tuning?",
+      opts:["Fine-tuning only the final classification layer while freezing all transformer blocks",
+            "Injecting two small trainable low-rank matrices A and B per layer so only A×B (not the full weight update) is trained",
+            "Training with a reduced learning rate; LoRA adds L2 regularisation to frozen weight matrices",
+            "Applying INT8 quantisation-aware fine-tuning to all adapter weight matrices"],
+      ans:1, hints:["The insight: the effective update to model weights during fine-tuning lives in a low-dimensional subspace.","Instead of updating a huge W matrix directly, you add a low-rank correction: W + A×B, training only A and B — orders of magnitude fewer parameters."], boss:false },
+
   ]
 };
 
@@ -698,16 +962,17 @@ const QUESTION_BANK = {
 let state = {
   teamName:      "",
   difficulty:    "pro",
+  phase:         1,          // 1 = main game, 2 = bonus round
   score:         0,
   hintsUsed:     0,
   startTime:     null,
   currentWorld:  null,
-  currentQ:      null,   // {worldIdx, questionIdx}
-  worldProgress: [0, 0, 0, 0],   // answered count per world
+  currentQ:      null,
+  worldProgress: [0, 0, 0, 0],
   worldUnlocked: [true, false, false, false],
   worldComplete:  [false, false, false, false],
-  worldQuestions: [],            // [world][4] selected questions
-  questionHintsUsed: 0,          // hints used on current question
+  worldQuestions: [],
+  questionHintsUsed: 0,
   sessionId:     null,
   soundEnabled:  true,
   cooldownTimer: null,
@@ -734,15 +999,11 @@ function injectDifficultySelector() {
   const rulesGrid = document.querySelector(".rules-grid");
   if (!rulesGrid) return;
 
-  // Effective points table per difficulty
-  const ptRows = Object.entries(DIFFICULTY).map(([key, cfg]) => {
-    const reg  = Math.round(POINTS_REGULAR * cfg.multiplier);
-    const boss = Math.round(POINTS_BOSS    * cfg.multiplier);
-    return `<div class="pts-row ${key}">
-      <span>${cfg.label}</span>
-      <span>${reg} / ${boss} pts</span>
-    </div>`;
-  }).join('');
+  const diffLabels = {
+    rookie: 'Easier Questions',
+    pro:    'Harder Questions',
+    legend: 'Expert Questions',
+  };
 
   const html = `
     <div class="difficulty-selector" id="difficultySelectorWrap">
@@ -753,14 +1014,14 @@ function injectDifficultySelector() {
             <input type="radio" name="difficulty" value="${key}" ${key==='pro'?'checked':''} style="display:none">
             <span class="diff-icon">${cfg.label.split(' ')[0]}</span>
             <span class="diff-name">${cfg.label.split(' ').slice(1).join(' ')}</span>
-            <span class="diff-multiplier">×${cfg.multiplier}</span>
+            <span class="diff-level-tag">${diffLabels[key]}</span>
             <span class="diff-desc">${cfg.description}</span>
           </label>
         `).join('')}
       </div>
       <div class="pts-table">
-        <div class="pts-table-title">💰 Points per correct answer (Regular / Boss)</div>
-        ${ptRows}
+        <div class="pts-table-title">💰 All modes: 20 pts regular · 30 pts boss — perfectly equal!</div>
+        <div class="pts-row equal-note">Same max score (640 pts) for every team · Harder mode = harder questions only</div>
       </div>
       <div class="diff-warning-rookie" id="rookieWarning" style="display:none"></div>
     </div>`;
@@ -891,22 +1152,24 @@ function renderHub() {
   document.getElementById("hubTeamName").textContent = state.teamName;
   const totalAnswered = state.worldProgress.reduce((a,b) => a+b, 0);
   const total = state.totalQuestions || 30;
-  document.getElementById("hubProgress").textContent = `Progress: ${totalAnswered}/${total} Questions`;
+  const phaseLabel = state.phase === 2 ? ` · 🔥 ${BONUS_CONFIG[state.difficulty].label}` : '';
+  document.getElementById("hubProgress").textContent = `Progress: ${totalAnswered}/${total} Questions${phaseLabel}`;
   document.getElementById("hubScore").textContent     = `${state.score} pts`;
 
   const grid = document.getElementById("portalsGrid");
+  const modeLabel = state.phase === 2 ? BONUS_CONFIG[state.difficulty].label : DIFFICULTY[state.difficulty].label;
   grid.innerHTML = WORLDS.map((w, i) => {
     const done     = state.worldComplete[i];
     const locked   = !state.worldUnlocked[i];
     const progress = state.worldProgress[i];
     const worldTotal = state.worldTotals?.[i] || 8;
-    const cls      = locked ? "portal locked" : (done ? "portal complete" : "portal active");
+    const cls      = locked ? "portal locked" : (done ? "portal complete" : (state.phase === 2 ? "portal active bonus-portal" : "portal active"));
     return `
       <div class="${cls}" onclick="${locked ? '' : `enterWorld(${i})`}" style="--world-glow:${w.glow}">
         <div class="portal-icon">${done ? '✅' : (locked ? '🔒' : w.emoji)}</div>
         <div class="portal-name">${w.name}</div>
         <div class="portal-progress">${progress}/${worldTotal} ${done ? '· COMPLETE' : (locked ? '· LOCKED' : '')}</div>
-        ${!locked && !done ? `<div class="portal-diff-badge">${DIFFICULTY[state.difficulty].label}</div>` : ''}
+        ${!locked && !done ? `<div class="portal-diff-badge">${modeLabel}</div>` : ''}
       </div>`;
   }).join('');
 }
@@ -1035,27 +1298,28 @@ window.openQuestion = function(worldIdx, questionIdx) {
   // Remove any stale banners before adding
   document.querySelectorAll(".boss-banner, .mult-banner").forEach(b => b.remove());
 
-  // Multiplier banner — always visible so teams know what they're earning
+  // Phase/difficulty banner
   const effRegular = calcPts(POINTS_REGULAR);
   const effBoss    = calcPts(POINTS_BOSS);
+  const bannerLabel = state.phase === 2 ? BONUS_CONFIG[state.difficulty].label : diff.label;
   document.getElementById("qNumber").insertAdjacentHTML("afterend",
-    `<div class="mult-banner ${state.difficulty}">
-       ${diff.label} &nbsp;·&nbsp; ×${diff.multiplier} multiplier
-       &nbsp;·&nbsp; ${q.boss ? effBoss : effRegular} pts this question
+    `<div class="mult-banner ${state.difficulty} ${state.phase === 2 ? 'bonus-phase' : ''}">
+       ${bannerLabel} &nbsp;·&nbsp; ${q.boss ? effBoss : effRegular} pts this question
      </div>`);
 
   if (q.boss) document.getElementById("qText").insertAdjacentHTML("beforebegin",
     `<div class="boss-banner">👑 BOSS QUESTION — ${effBoss} pts</div>`);
 
   // Hint area
+  const hintCost   = currentHintCost();
   const hintsAvail = diff.maxHintsPerQuestion - state.questionHintsUsed;
   document.getElementById("hintsLeft").textContent = hintsAvail;
   const costEl = document.getElementById("hintCostDisplay");
-  if (costEl) costEl.textContent = `${diff.hintCost} pts`;
+  if (costEl) costEl.textContent = `${hintCost} pts`;
   document.getElementById("hintTextBox").innerHTML = "";
   document.getElementById("hintTextBox").style.display = "none";
   document.getElementById("hintBtn").disabled = (hintsAvail <= 0);
-  document.getElementById("hintBtn").textContent = `Use Hint (−${diff.hintCost})`;
+  document.getElementById("hintBtn").textContent = `Use Hint (−${hintCost})`;
 
   // Options — shuffle order every render so correct answer is never predictable
   const labels = ["A","B","C","D"];
@@ -1086,18 +1350,18 @@ window.returnToWorld = function() {
 
 // ─── Hint ─────────────────────────────────────────────────────────
 window.useHint = function() {
-  const diff = DIFFICULTY[state.difficulty];
+  const diff     = DIFFICULTY[state.difficulty];
+  const hintCost = currentHintCost();
   if (state.questionHintsUsed >= diff.maxHintsPerQuestion) return;
 
   const q        = state.worldQuestions[state.currentQ.worldIdx][state.currentQ.questionIdx];
-  const hintIdx  = state.questionHintsUsed;   // 0-based index of the hint to reveal next
-  const hints    = q.hints || [q.hint];        // fallback to legacy single hint
+  const hintIdx  = state.questionHintsUsed;
+  const hints    = q.hints || [q.hint];
 
   state.questionHintsUsed++;
   state.hintsUsed++;
-  state.score = Math.max(0, state.score - diff.hintCost);
+  state.score = Math.max(0, state.score - hintCost);
 
-  // Show ALL hints revealed so far, stacked — so teams can re-read earlier ones
   const revealed = hints.slice(0, state.questionHintsUsed);
   document.getElementById("hintTextBox").innerHTML = revealed.map((h, i) =>
     `<div class="hint-line hint-level-${i+1}">
@@ -1110,7 +1374,7 @@ window.useHint = function() {
   document.getElementById("hintBtn").disabled = (state.questionHintsUsed >= diff.maxHintsPerQuestion);
   document.getElementById("hintBtn").textContent =
     state.questionHintsUsed < diff.maxHintsPerQuestion
-      ? `Next Hint (−${diff.hintCost})`
+      ? `Next Hint (−${hintCost})`
       : "No hints left";
   document.getElementById("qScore").textContent = `${state.score} pts`;
   syncScoreToFirebase();
@@ -1126,14 +1390,14 @@ window.selectAnswer = function(optIdx) {
   const basePts  = q.boss ? POINTS_BOSS : POINTS_REGULAR;
   const pts      = calcPts(basePts);
 
-  // Highlight buttons — mark the correct one regardless of which was clicked
-  document.querySelectorAll(".option-btn").forEach((btn, i) => {
-    btn.disabled = true;
-    if (shuffled[i].correct)          btn.classList.add("correct");
-    if (i === optIdx && !correct)     btn.classList.add("wrong");
-  });
+  // Disable all buttons immediately
+  document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true);
 
   if (correct) {
+    // Correct — highlight the chosen button green
+    document.querySelectorAll(".option-btn").forEach((btn, i) => {
+      if (i === optIdx) btn.classList.add("correct");
+    });
     state.score += pts;
     state.worldProgress[worldIdx]++;
     playSound("correct");
@@ -1142,6 +1406,10 @@ window.selectAnswer = function(optIdx) {
     const worldDone  = state.worldProgress[worldIdx] >= worldTotal;
     setTimeout(() => showFeedback(true, pts, worldIdx, questionIdx, worldDone), 400);
   } else {
+    // Wrong — only highlight the chosen button red, correct answer stays hidden
+    document.querySelectorAll(".option-btn").forEach((btn, i) => {
+      if (i === optIdx) btn.classList.add("wrong");
+    });
     playSound("wrong");
     startCooldown(() => {
       document.querySelectorAll(".option-btn").forEach(btn => {
@@ -1183,7 +1451,7 @@ function showFeedback(correct, pts, worldIdx, questionIdx, worldDone = false) {
   document.getElementById("feedbackTitle").textContent = correct ? "Correct!" : "Wrong!";
   document.getElementById("feedbackPoints").textContent = correct ? `+${pts} pts` : "";
   document.getElementById("feedbackSub").textContent   = correct
-    ? (worldDone ? `World complete! +${DIFFICULTY[state.difficulty].completionBonus} bonus` : "Keep going!")
+    ? (worldDone ? `🌟 World Complete! On to the next realm!` : "Keep going!")
     : "Try again after the cooldown.";
 
   document.getElementById("feedbackOverlay").style.display = "flex";
@@ -1193,7 +1461,6 @@ function showFeedback(correct, pts, worldIdx, questionIdx, worldDone = false) {
   document.getElementById("feedbackNextBtn")._action = () => {
     document.getElementById("feedbackOverlay").style.display = "none";
     if (worldDone) {
-      state.score += DIFFICULTY[state.difficulty].completionBonus;
       state.worldComplete[worldIdx] = true;
       if (worldIdx + 1 < 4) {
         state.worldUnlocked[worldIdx + 1] = true;
@@ -1202,7 +1469,11 @@ function showFeedback(correct, pts, worldIdx, questionIdx, worldDone = false) {
 
       const allDone = state.worldComplete.every(Boolean);
       if (allDone) {
-        showVictory();
+        if (state.phase === 1) {
+          showBonusOffer();   // offer bonus round instead of immediate victory
+        } else {
+          showVictory();      // phase 2 complete — real victory
+        }
       } else {
         renderHub();
         showScreen("screen-hub");
@@ -1220,8 +1491,60 @@ function onFeedbackNext() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  VICTORY
+//  BONUS ROUND
 // ═══════════════════════════════════════════════════════════════════
+function showBonusOffer() {
+  const bc      = BONUS_CONFIG[state.difficulty];
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const mins    = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const secs    = String(elapsed % 60).padStart(2, '0');
+
+  // Award Phase 1 completion bonus
+  state.score += PHASE1_COMPLETION_BONUS;
+
+  document.getElementById("bonusTeamName").textContent    = state.teamName;
+  document.getElementById("bonusPhase1Score").textContent = state.score;
+  document.getElementById("bonusPhase1Time").textContent  = `${mins}:${secs}`;
+  document.getElementById("bonusRoundLabel").textContent  = bc.label;
+  document.getElementById("bonusMaxExtra").textContent    = phase2Max(state.difficulty);
+  document.getElementById("bonusCompletionBonus").textContent = `+${PHASE1_COMPLETION_BONUS} pts completion bonus added!`;
+
+  syncScoreToFirebase();
+  showScreen("screen-bonus");
+}
+
+window.acceptBonus = function() {
+  const bc = BONUS_CONFIG[state.difficulty];
+  state.phase = 2;
+
+  // Load bonus questions from the next difficulty tier
+  const pool = QUESTION_BANK[bc.fromDiff];
+  // For legend (elite), shuffle all legend questions fresh so they get different ones
+  state.worldQuestions = WORLDS.map((_, wi) => {
+    const worldPool = pool.filter(q => q.world === wi);
+    const regular   = shuffle(worldPool.filter(q => !q.boss));
+    const bosses    = shuffle(worldPool.filter(q =>  q.boss));
+    return [...regular, ...bosses];
+  });
+  state.worldTotals    = state.worldQuestions.map(qs => qs.length);
+  state.totalQuestions = state.worldTotals.reduce((a, b) => a + b, 0);
+
+  // Reset world progress for bonus round
+  state.worldProgress = [0, 0, 0, 0];
+  state.worldUnlocked = [true, false, false, false];
+  state.worldComplete  = [false, false, false, false];
+
+  renderHub();
+  showScreen("screen-hub");
+  showToast(`🔥 ${bc.label} started! Harder questions — same points. Prove yourself!`, "success");
+  playSound("start");
+};
+
+window.declineBonus = function() {
+  showVictory();
+};
+
+
 function showVictory() {
   const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
   const mins    = String(Math.floor(elapsed / 60)).padStart(2, '0');
@@ -1231,6 +1554,10 @@ function showVictory() {
   document.getElementById("winScore").textContent    = state.score;
   document.getElementById("winHints").textContent    = state.hintsUsed;
   document.getElementById("winTime").textContent     = `${mins}:${secs}`;
+  document.getElementById("winTitle").textContent    = state.phase === 2 ? "FULL QUEST COMPLETE! 🔥" : "QUEST COMPLETE!";
+  document.getElementById("winPhaseTag").textContent = state.phase === 2
+    ? `Phase 1 + ${BONUS_CONFIG[state.difficulty].label} ✓`
+    : `Phase 1 · ${DIFFICULTY[state.difficulty].label}`;
 
   launchConfetti();
   stopMusic();
@@ -1269,26 +1596,34 @@ function renderLbDOM(teams) {
   const raceLanes = document.getElementById("raceLanes");
   const lbTable   = document.getElementById("leaderboardTable");
 
-  raceLanes.innerHTML = teams.slice(0, 8).map((t, i) => `
+  raceLanes.innerHTML = teams.slice(0, 8).map((t, i) => {
+    const maxQ = t.phase === 2 ? 60 : 30;
+    return `
     <div class="race-lane">
       <div class="race-name">${medals[i]||`#${i+1}`} ${escHtml(t.name)}</div>
       <div class="race-bar-wrap">
-        <div class="race-bar" style="width:${Math.min(100, (t.progress||0)/30*100)}%;
+        <div class="race-bar" style="width:${Math.min(100, (t.progress||0)/maxQ*100)}%;
           background:${WORLDS[(Math.floor((t.progress||1)/8))]?.glow || '#52b788'}">
-          ${t.progress||0}/30
+          ${t.progress||0}/${maxQ}
         </div>
       </div>
       <div class="race-score">${t.score} pts</div>
-    </div>`).join('') || '<div style="padding:20px;color:#aaa">No teams yet…</div>';
+    </div>`;
+  }).join('') || '<div style="padding:20px;color:#aaa">No teams yet…</div>';
 
-  lbTable.innerHTML = teams.map((t, i) => `
+  lbTable.innerHTML = teams.map((t, i) => {
+    const phaseTag = t.phase === 2 ? '<span class="lb-bonus-tag">🔥 BONUS</span>' : '';
+    return `
     <div class="lb-row ${i < 3 ? 'top-'+i : ''}">
       <div class="lb-rank">${medals[i] || i+1}</div>
-      <div class="lb-team">${escHtml(t.name)}<span class="lb-diff"> · ${DIFFICULTY[t.difficulty||'pro']?.label||''}</span></div>
+      <div class="lb-team">${escHtml(t.name)}${phaseTag}<span class="lb-diff"> · ${DIFFICULTY[t.difficulty||'pro']?.label||''}</span></div>
       <div class="lb-prog">${t.progress||0}/30 questions</div>
-      <div class="lb-score">${t.score} pts</div>
+      <div class="lb-score">
+        <span class="lb-pct">${t.score} pts</span>
+      </div>
       <div class="lb-status">${t.complete ? '✅ Done' : '⏳ Playing'}</div>
-    </div>`).join('') || '<div style="padding:20px;color:#aaa">Waiting for teams…</div>';
+    </div>`;
+  }).join('') || '<div style="padding:20px;color:#aaa">Waiting for teams…</div>';
 }
 
 window.clearAllData = function() {
@@ -1310,7 +1645,8 @@ function syncScoreToFirebase(final = false) {
     score:      state.score,
     progress:   totalProgress,
     difficulty: state.difficulty,
-    complete:   state.worldComplete.every(Boolean),
+    phase:      state.phase,
+    complete:   state.phase === 2 && state.worldComplete.every(Boolean),
     updatedAt:  Date.now()
   };
 
@@ -1338,6 +1674,7 @@ window.resetGame = function() {
   stopMusic();
   state = { ...state,
     teamName:"", score:0, hintsUsed:0, startTime:null,
+    phase: 1,
     currentWorld:null, currentQ:null,
     worldProgress:[0,0,0,0], worldUnlocked:[true,false,false,false],
     worldComplete:[false,false,false,false], worldQuestions:[],
