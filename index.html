@@ -70,7 +70,7 @@
         </div>
         <div class="rule-item">
           <span class="rule-icon">💡</span>
-          <div class="rule-text"><strong>Hints Cost Pts</strong>Less hints = more bonus</div>
+          <div class="rule-text"><strong>Hints Cost Pts</strong>Start with 20 pts · hints deduct</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">⏳</span>
@@ -82,7 +82,7 @@
         </div>
         <div class="rule-item">
           <span class="rule-icon">🥇</span>
-          <div class="rule-text"><strong>Highest Score</strong>Wins the crown!</div>
+          <div class="rule-text"><strong>Highest Score</strong>Tiebreaker: fastest time</div>
         </div>
       </div>
 
@@ -271,14 +271,13 @@
     <div class="bonus-stats">
       <div class="bonus-stat">
         <div class="bonus-stat-val" id="bonusPhase1Score"></div>
-        <div class="bonus-stat-lab">Phase 1 Score (incl. bonus)</div>
+        <div class="bonus-stat-lab">Phase 1 Score</div>
       </div>
       <div class="bonus-stat">
         <div class="bonus-stat-val" id="bonusPhase1Time"></div>
         <div class="bonus-stat-lab">Time Taken</div>
       </div>
     </div>
-    <div class="bonus-completion-tag" id="bonusCompletionBonus"></div>
 
     <div class="bonus-offer-box">
       <div class="bonus-offer-title">⚡ BONUS CHALLENGE AVAILABLE</div>
@@ -340,7 +339,7 @@
   <div class="host-header">
     <div>
       <div class="host-title">🔐 CipherQuest Live</div>
-      <div class="host-subtitle">Real-time Competition Leaderboard</div>
+      <div class="host-subtitle">Ranked by Score · Tiebreaker: Fastest Time</div>
     </div>
     <div class="host-actions">
       <div class="live-badge">
@@ -364,6 +363,7 @@
         <div>Team</div>
         <div>Progress</div>
         <div style="text-align:right">Score</div>
+        <div style="text-align:center">Time</div>
         <div style="text-align:center">Status</div>
       </div>
       <div id="leaderboardTable"></div>
