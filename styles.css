@@ -706,11 +706,6 @@ html, body {
   font-family: var(--font-head); font-size: 28px; font-weight: 800; color: #fff;
 }
 .bonus-stat-lab { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
-.bonus-completion-tag {
-  font-size: 13px; font-weight: 700; color: var(--correct);
-  background: rgba(82,183,136,0.12); border: 1px solid rgba(82,183,136,0.3);
-  border-radius: 20px; padding: 5px 16px; text-align: center; margin-bottom: 20px;
-}
 .bonus-offer-box {
   background: rgba(255,100,0,0.08); border: 1px solid rgba(255,100,0,0.3);
   border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;
@@ -808,13 +803,13 @@ html, body {
 .leaderboard-container { padding: 24px 32px; flex: 1; }
 .leaderboard-table { width: 100%; }
 .lb-header {
-  display: grid; grid-template-columns: 48px 1fr 140px 100px 90px;
+  display: grid; grid-template-columns: 48px 1fr 100px 100px 80px 80px;
   padding: 10px 16px; font-size: 11px; letter-spacing: 2px;
   color: var(--muted); text-transform: uppercase; font-weight: 700;
   border-bottom: 1px solid var(--border);
 }
 .lb-row {
-  display: grid; grid-template-columns: 48px 1fr 140px 100px 90px;
+  display: grid; grid-template-columns: 48px 1fr 100px 100px 80px 80px;
   padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
   align-items: center; transition: background 0.2s; font-size: 14px;
 }
@@ -828,7 +823,7 @@ html, body {
 .lb-prog { font-size: 13px; color: var(--muted); }
 .lb-score { font-family: var(--font-head); text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .lb-pct { font-size: 17px; font-weight: 800; color: var(--gold); }
-.lb-rawscore { font-size: 11px; color: var(--muted); font-weight: 500; }
+.lb-time { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #7dd3fc; text-align: center; }
 .lb-status { font-size: 12px; text-align: center; }
 
 /* ─── Responsive ───────────────────────────────────────────────── */
@@ -838,7 +833,7 @@ html, body {
   .world-path-svg, .world-nodes { width: 100vw; height: calc(100vw * 0.75); }
   .win-stats { gap: 16px; }
   .race-lane { grid-template-columns: 120px 1fr 60px; }
-  .lb-header, .lb-row { grid-template-columns: 40px 1fr 80px 60px; }
+  .lb-header, .lb-row { grid-template-columns: 40px 1fr 70px 70px 60px; }
   .lb-header > :last-child, .lb-row > :last-child { display: none; }
   .diff-options { grid-template-columns: 1fr 1fr 1fr; }
   .rules-grid { grid-template-columns: 1fr; }
