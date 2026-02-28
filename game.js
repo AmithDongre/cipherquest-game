@@ -59,8 +59,8 @@ const BONUS_CONFIG = {
   legend: { fromDiff: 'elite',  label: '🌟 Elite Bonus Round',   regularPts: 20, bossPts: 30, hintCost: 10 },
 };
 
-// Bonus awarded for completing Phase 1 entirely
-const PHASE1_COMPLETION_BONUS = 50;
+
+
 
 // Points per question — depends on phase and question type
 function calcPts(base) {
@@ -963,7 +963,7 @@ let state = {
   teamName:      "",
   difficulty:    "pro",
   phase:         1,          // 1 = main game, 2 = bonus round
-  score:         0,
+  score:         POINTS_REGULAR,
   hintsUsed:     0,
   startTime:     null,
   currentWorld:  null,
@@ -1057,7 +1057,7 @@ function initFirebase() {
     // ONE persistent real-time listener on scores — fires immediately then on every change
     _lbUnsubscribe = onValue(ref(state.fbDb, "scores"), snap => {
       const data = snap.val() || {};
-      _lbCache = Object.values(data).sort((a, b) => b.score - a.score);
+      _lbCache = Object.values(data).sort((a, b) => b.score - a.score || (a.elapsedSeconds||0) - (b.elapsedSeconds||0));
       // Mark as connected the moment we get any data response (even empty)
       state.fbConnected = true;
       updateConnUI(true);
@@ -1110,7 +1110,7 @@ window.startGame = function() {
 
   state.teamName   = name;
   state.difficulty = document.querySelector('input[name="difficulty"]:checked')?.value || "pro";
-  state.score      = 0;
+  state.score      = POINTS_REGULAR;  // starting bonus = 1 regular question's worth (20 pts) — ensures hint deductions always work
   state.hintsUsed  = 0;
   state.startTime  = Date.now();
   state.worldProgress = [0,0,0,0];
@@ -1499,15 +1499,11 @@ function showBonusOffer() {
   const mins    = String(Math.floor(elapsed / 60)).padStart(2, '0');
   const secs    = String(elapsed % 60).padStart(2, '0');
 
-  // Award Phase 1 completion bonus
-  state.score += PHASE1_COMPLETION_BONUS;
-
   document.getElementById("bonusTeamName").textContent    = state.teamName;
   document.getElementById("bonusPhase1Score").textContent = state.score;
   document.getElementById("bonusPhase1Time").textContent  = `${mins}:${secs}`;
   document.getElementById("bonusRoundLabel").textContent  = bc.label;
   document.getElementById("bonusMaxExtra").textContent    = phase2Max(state.difficulty);
-  document.getElementById("bonusCompletionBonus").textContent = `+${PHASE1_COMPLETION_BONUS} pts completion bonus added!`;
 
   syncScoreToFirebase();
   showScreen("screen-bonus");
@@ -1538,6 +1534,7 @@ window.acceptBonus = function() {
   showScreen("screen-hub");
   showToast(`🔥 ${bc.label} started! Harder questions — same points. Prove yourself!`, "success");
   playSound("start");
+  startMusic();
 };
 
 window.declineBonus = function() {
@@ -1596,6 +1593,13 @@ function renderLbDOM(teams) {
   const raceLanes = document.getElementById("raceLanes");
   const lbTable   = document.getElementById("leaderboardTable");
 
+  function fmtTime(secs) {
+    if (!secs) return '—';
+    const m = String(Math.floor(secs / 60)).padStart(2,'0');
+    const s = String(secs % 60).padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
   raceLanes.innerHTML = teams.slice(0, 8).map((t, i) => {
     const maxQ = t.phase === 2 ? 60 : 30;
     return `
@@ -1612,15 +1616,16 @@ function renderLbDOM(teams) {
   }).join('') || '<div style="padding:20px;color:#aaa">No teams yet…</div>';
 
   lbTable.innerHTML = teams.map((t, i) => {
+    const maxQ     = t.phase === 2 ? 60 : 30;
     const phaseTag = t.phase === 2 ? '<span class="lb-bonus-tag">🔥 BONUS</span>' : '';
+    const timeStr  = fmtTime(t.elapsedSeconds);
     return `
     <div class="lb-row ${i < 3 ? 'top-'+i : ''}">
       <div class="lb-rank">${medals[i] || i+1}</div>
       <div class="lb-team">${escHtml(t.name)}${phaseTag}<span class="lb-diff"> · ${DIFFICULTY[t.difficulty||'pro']?.label||''}</span></div>
-      <div class="lb-prog">${t.progress||0}/30 questions</div>
-      <div class="lb-score">
-        <span class="lb-pct">${t.score} pts</span>
-      </div>
+      <div class="lb-prog">${t.progress||0}/${maxQ}</div>
+      <div class="lb-score"><span class="lb-pct">${t.score} pts</span></div>
+      <div class="lb-time">${timeStr}</div>
       <div class="lb-status">${t.complete ? '✅ Done' : '⏳ Playing'}</div>
     </div>`;
   }).join('') || '<div style="padding:20px;color:#aaa">Waiting for teams…</div>';
@@ -1639,22 +1644,24 @@ window.clearAllData = function() {
 // ═══════════════════════════════════════════════════════════════════
 function syncScoreToFirebase(final = false) {
   if (!state.teamName) return;
-  const totalProgress = state.worldProgress.reduce((a,b)=>a+b,0);
+  const totalProgress  = state.worldProgress.reduce((a,b)=>a+b,0);
+  const elapsedSeconds = state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0;
   const payload = {
-    name:       state.teamName,
-    score:      state.score,
-    progress:   totalProgress,
-    difficulty: state.difficulty,
-    phase:      state.phase,
-    complete:   state.phase === 2 && state.worldComplete.every(Boolean),
-    updatedAt:  Date.now()
+    name:           state.teamName,
+    score:          state.score,
+    progress:       totalProgress,
+    difficulty:     state.difficulty,
+    phase:          state.phase,
+    elapsedSeconds: elapsedSeconds,
+    complete:       state.worldComplete.every(Boolean),
+    updatedAt:      Date.now()
   };
 
-  // Local storage fallback
+  // Local storage fallback — sort by score desc, then time asc
   const scores = getLocalScores();
   const idx = scores.findIndex(s => s.name === state.teamName);
   if (idx >= 0) scores[idx] = payload; else scores.push(payload);
-  scores.sort((a,b) => b.score - a.score);
+  scores.sort((a,b) => b.score - a.score || (a.elapsedSeconds||0) - (b.elapsedSeconds||0));
   localStorage.setItem("cq_scores", JSON.stringify(scores));
 
   if (state.fbDb && state.fbConnected) {
@@ -1673,7 +1680,7 @@ function getLocalScores() {
 window.resetGame = function() {
   stopMusic();
   state = { ...state,
-    teamName:"", score:0, hintsUsed:0, startTime:null,
+    teamName:"", score:POINTS_REGULAR, hintsUsed:0, startTime:null,
     phase: 1,
     currentWorld:null, currentQ:null,
     worldProgress:[0,0,0,0], worldUnlocked:[true,false,false,false],
@@ -1749,12 +1756,12 @@ function showToast(msg, type = "info") {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  SOUND ENGINE  —  Calm & Motivating  (Web Audio API)
+//  SOUND ENGINE  —  5 World Themes + SFX  (Web Audio API)
 // ═══════════════════════════════════════════════════════════════════
-let audioCtx  = null;
-let musicNodes = [];      // tracks all background music nodes for clean stop
+let audioCtx     = null;
+let musicNodes   = [];
 let musicRunning = false;
-let musicLoop    = null;  // setTimeout handle for loop scheduling
+let musicLoop    = null;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1763,24 +1770,8 @@ function getAudioCtx() {
 }
 
 // ── Primitive builders ────────────────────────────────────────────
-function note(ctx, freq, startT, dur, vol, type = 'sine') {
-  const osc = ctx.createOscillator();
-  const env = ctx.createGain();
-  osc.connect(env); env.connect(ctx.destination);
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, startT);
-  env.gain.setValueAtTime(0, startT);
-  env.gain.linearRampToValueAtTime(vol, startT + Math.min(0.08, dur * 0.3));
-  env.gain.setValueAtTime(vol, startT + dur * 0.6);
-  env.gain.exponentialRampToValueAtTime(0.0001, startT + dur);
-  osc.start(startT);
-  osc.stop(startT + dur + 0.02);
-  return osc;
-}
-
-function pad(ctx, freq, startT, dur, vol, dest) {
-  // Soft pad: two slightly detuned sines for warmth
-  [0, 3].forEach(detune => {
+function pad(ctx, freq, startT, dur, vol, dest, detunes = [0, 3]) {
+  detunes.forEach(detune => {
     const osc = ctx.createOscillator();
     const env = ctx.createGain();
     osc.connect(env); env.connect(dest || ctx.destination);
@@ -1790,18 +1781,79 @@ function pad(ctx, freq, startT, dur, vol, dest) {
     env.gain.linearRampToValueAtTime(vol, startT + 0.4);
     env.gain.setValueAtTime(vol, startT + dur - 0.5);
     env.gain.exponentialRampToValueAtTime(0.0001, startT + dur);
-    osc.start(startT);
-    osc.stop(startT + dur + 0.05);
+    osc.start(startT); osc.stop(startT + dur + 0.05);
     musicNodes.push(osc);
   });
 }
 
-// ── Background Music ──────────────────────────────────────────────
-// Calm ambient loop: Am → F → C → G  (pentatonic melody over pads)
-// BPM ~72 → beat = 0.833s, bar = 3.33s, 4-bar loop = 13.33s
+function pulse(ctx, freq, startT, dur, vol, type, dest) {
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.connect(env); env.connect(dest || ctx.destination);
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, startT);
+  env.gain.setValueAtTime(0, startT);
+  env.gain.linearRampToValueAtTime(vol, startT + 0.03);
+  env.gain.exponentialRampToValueAtTime(0.0001, startT + dur);
+  osc.start(startT); osc.stop(startT + dur + 0.02);
+  musicNodes.push(osc);
+}
 
+// ── Master bus helper ─────────────────────────────────────────────
+function makeMaster(ctx, vol, delayTime, delayFeedback) {
+  const master = ctx.createGain();
+  master.gain.value = vol;
+  master.connect(ctx.destination);
+  musicNodes.push(master);
+
+  if (delayTime > 0) {
+    const delay = ctx.createDelay(1.0);
+    const dGain = ctx.createGain();
+    delay.delayTime.value  = delayTime;
+    dGain.gain.value       = delayFeedback;
+    delay.connect(dGain); dGain.connect(delay);
+    delay.connect(master);
+    musicNodes.push(delay, dGain);
+    return { master, send: delay };  // route instruments → send → delay → master
+  }
+  return { master, send: master };
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  THEME DEFINITIONS
+//  Each returns { loop: number (seconds), schedule: fn(ctx, t, bus) }
+// ─────────────────────────────────────────────────────────────────
+
+// HUB / LANDING — calm Am→F→C→G ambient (original theme)
+function themeHub(ctx, t, bus) {
+  const BPM = 72, beat = 60/BPM, bar = beat*4, loop = bar*4;
+  const chords = [
+    [220,261.6,329.6], [174.6,220,261.6],
+    [130.8,164.8,196], [146.8,196,246.9]
+  ];
+  chords.forEach((ch,i) => ch.forEach(f => pad(ctx, f, t+i*bar, bar+0.3, 0.042, bus.send)));
+  const bass = [110,87.3,65.4,73.4];
+  bass.forEach((f,i) => [0, beat*2].forEach(off => pulse(ctx, f, t+i*bar+off, beat*1.6, 0.11, 'sine', bus.send)));
+  const mel = [
+    {f:440,b:0},{f:523.3,b:0.5},{f:587.3,b:1},{f:659.3,b:1.5},
+    {f:587.3,b:2},{f:523.3,b:2.5},{f:440,b:3},{f:392,b:3.5},
+    {f:349.2,b:4},{f:392,b:4.5},{f:440,b:5},{f:523.3,b:5.5},
+    {f:587.3,b:6},{f:523.3,b:6.5},{f:440,b:7},{f:392,b:7.5},
+    {f:523.3,b:8},{f:587.3,b:8.5},{f:659.3,b:9},{f:783.9,b:9.5},
+    {f:659.3,b:10},{f:587.3,b:10.5},{f:523.3,b:11},{f:440,b:11.5},
+    {f:392,b:12},{f:440,b:12.5},{f:392,b:13},{f:349.2,b:13.5},
+    {f:330,b:14},{f:293.7,b:14.5},{f:261.6,b:15},{f:220,b:15.5},
+  ];
+  mel.forEach(({f,b}) => pulse(ctx, f, t+b*beat, beat*0.85, 0.065, 'triangle', bus.send));
+  for (let i=0;i<16;i++) pulse(ctx, 1760, t+i*beat*0.5, 0.25, 0.016, 'triangle', bus.send);
+  return loop;
+}
+
+
+// ── Music controls ────────────────────────────────────────────────
 function startMusic() {
-  if (musicRunning || !state.soundEnabled) return;
+  if (musicRunning) return;
+  if (!state.soundEnabled) return;
   musicRunning = true;
   scheduleLoop();
 }
@@ -1815,108 +1867,13 @@ function stopMusic() {
 
 function scheduleLoop() {
   if (!musicRunning || !state.soundEnabled) return;
-  const ctx  = getAudioCtx();
-  const t    = ctx.currentTime + 0.05;
-  const BPM  = 72;
-  const beat = 60 / BPM;          // 0.833s
-  const bar  = beat * 4;          // 3.33s
-  const loop = bar * 4;           // 13.33s — full 4-bar cycle
+  const ctx = getAudioCtx();
+  const t   = ctx.currentTime + 0.05;
+  const bus = makeMaster(ctx, 0.55, 0.25, 0.18);
+  const loop = themeHub(ctx, t, bus);
 
-  // Master reverb-lite (feedback delay for space)
-  const delay  = ctx.createDelay(0.5);
-  const dGain  = ctx.createGain();
-  const master = ctx.createGain();
-  delay.delayTime.value = beat * 0.75;
-  dGain.gain.value = 0.18;
-  master.gain.value = 0.55;
-  delay.connect(dGain); dGain.connect(delay);
-  delay.connect(master); master.connect(ctx.destination);
-  musicNodes.push(delay, dGain, master);
-
-  // ── Chord pads ─────────────────────────────────────────────────
-  // Am        F         C         G
-  const chords = [
-    [220, 261.6, 329.6],   // Am  — A3 C4 E4
-    [174.6, 220, 261.6],   // F   — F3 A3 C4
-    [130.8, 164.8, 196],   // C   — C3 E3 G3
-    [146.8, 196, 246.9],   // G   — D3 G3 B3
-  ];
-  chords.forEach((chord, i) => {
-    chord.forEach(f => {
-      pad(ctx, f, t + i * bar, bar + 0.3, 0.045, master);
-    });
-  });
-
-  // ── Bass line (root notes, soft & low) ──────────────────────────
-  const bassRoots = [110, 87.3, 65.4, 73.4]; // A2 F2 C2 G2
-  bassRoots.forEach((f, i) => {
-    // two bass pulses per bar
-    [0, beat * 2].forEach(offset => {
-      const bn = ctx.createOscillator();
-      const bg = ctx.createGain();
-      bn.connect(bg); bg.connect(master);
-      bn.type = 'sine';
-      bn.frequency.setValueAtTime(f, t + i * bar + offset);
-      bg.gain.setValueAtTime(0, t + i * bar + offset);
-      bg.gain.linearRampToValueAtTime(0.12, t + i * bar + offset + 0.05);
-      bg.gain.exponentialRampToValueAtTime(0.0001, t + i * bar + offset + beat * 1.6);
-      bn.start(t + i * bar + offset);
-      bn.stop(t + i * bar + offset + beat * 1.7);
-      musicNodes.push(bn);
-    });
-  });
-
-  // ── Pentatonic melody (A minor pentatonic: A B C E G) ──────────
-  // Gentle arpeggiated melody over the 4 bars
-  const mel = [
-    // bar 0 (Am)
-    {f:440,  b:0},    {f:523.3,b:0.5},  {f:587.3,b:1},    {f:659.3,b:1.5},
-    {f:587.3,b:2},    {f:523.3,b:2.5},  {f:440,  b:3},    {f:392,  b:3.5},
-    // bar 1 (F)
-    {f:349.2,b:4},    {f:392,  b:4.5},  {f:440,  b:5},    {f:523.3,b:5.5},
-    {f:587.3,b:6},    {f:523.3,b:6.5},  {f:440,  b:7},    {f:392,  b:7.5},
-    // bar 2 (C) — higher register, more hopeful
-    {f:523.3,b:8},    {f:587.3,b:8.5},  {f:659.3,b:9},    {f:783.9,b:9.5},
-    {f:659.3,b:10},   {f:587.3,b:10.5}, {f:523.3,b:11},   {f:440,  b:11.5},
-    // bar 3 (G) — resolve back down
-    {f:392,  b:12},   {f:440,  b:12.5}, {f:392,  b:13},   {f:349.2,b:13.5},
-    {f:330,  b:14},   {f:293.7,b:14.5}, {f:261.6,b:15},   {f:220,  b:15.5},
-  ];
-
-  mel.forEach(({f, b}) => {
-    const mn = ctx.createOscillator();
-    const mg = ctx.createGain();
-    mn.connect(mg); mg.connect(master);
-    mn.type = 'triangle';
-    mn.frequency.setValueAtTime(f, t + b * beat);
-    mg.gain.setValueAtTime(0, t + b * beat);
-    mg.gain.linearRampToValueAtTime(0.07, t + b * beat + 0.04);
-    mg.gain.exponentialRampToValueAtTime(0.0001, t + b * beat + beat * 0.85);
-    mn.start(t + b * beat);
-    mn.stop(t + b * beat + beat);
-    musicNodes.push(mn);
-  });
-
-  // ── Soft shimmer (high triangle pulses on beats) ─────────────────
-  for (let i = 0; i < 16; i++) {
-    const sn = ctx.createOscillator();
-    const sg = ctx.createGain();
-    sn.connect(sg); sg.connect(master);
-    sn.type = 'triangle';
-    sn.frequency.setValueAtTime(1760, t + i * beat * 0.5);
-    sg.gain.setValueAtTime(0, t + i * beat * 0.5);
-    sg.gain.linearRampToValueAtTime(0.018, t + i * beat * 0.5 + 0.02);
-    sg.gain.exponentialRampToValueAtTime(0.0001, t + i * beat * 0.5 + 0.25);
-    sn.start(t + i * beat * 0.5);
-    sn.stop(t + i * beat * 0.5 + 0.3);
-    musicNodes.push(sn);
-  }
-
-  // Schedule next loop ~0.1s before this one ends so there's no gap
   musicLoop = setTimeout(() => {
-    musicNodes = musicNodes.filter(n => {
-      try { n.playbackState; return true; } catch(e) { return false; }
-    });
+    musicNodes = musicNodes.filter(n => { try { n.playbackState; return true; } catch(e){ return false; } });
     scheduleLoop();
   }, (loop - 0.15) * 1000);
 }
