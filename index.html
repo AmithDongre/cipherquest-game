@@ -62,19 +62,19 @@
       <div class="rules-grid">
         <div class="rule-item">
           <span class="rule-icon">🏆</span>
-          <div class="rule-text"><strong>30 Questions</strong>4 Worlds to conquer</div>
+          <div class="rule-text"><strong>4 Worlds to conquer</strong>Rookie 30 · Pro 25 · Legend 10 questions</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">⭐</span>
-          <div class="rule-text"><strong>20–30 Points</strong>Regular · Boss question</div>
+          <div class="rule-text"><strong>Points per question</strong>Rookie 10 · Pro 12 · Legend 30 pts</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">💡</span>
-          <div class="rule-text"><strong>Hints Cost Pts</strong>Start with 20 pts · hints deduct</div>
+          <div class="rule-text"><strong>Hints Cost Pts</strong>Rookie 5 · Pro 6 · Legend 15</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">⏳</span>
-          <div class="rule-text"><strong>10s Cooldown</strong>On wrong answer</div>
+          <div class="rule-text"><strong>Wrong Answer Cooldown</strong>Rookie 10s · Pro 25s · Legend 30s</div>
         </div>
         <div class="rule-item">
           <span class="rule-icon">🔑</span>
@@ -82,7 +82,7 @@
         </div>
         <div class="rule-item">
           <span class="rule-icon">🥇</span>
-          <div class="rule-text"><strong>Highest Score</strong>Tiebreaker: fastest time</div>
+          <div class="rule-text"><strong>Max 315 pts all modes</strong>Tiebreaker: fastest time</div>
         </div>
       </div>
 
@@ -259,45 +259,6 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCREEN 8: VICTORY
      ═══════════════════════════════════════════════════════════ -->
-<!-- ═══════════════════════════════════════════════════════════
-     SCREEN: BONUS OFFER
-     ═══════════════════════════════════════════════════════════ -->
-<div class="screen" id="screen-bonus">
-  <div class="bonus-card">
-    <div class="bonus-trophy">🔥</div>
-    <div class="bonus-title">PHASE 1 COMPLETE!</div>
-    <div class="bonus-team" id="bonusTeamName"></div>
-
-    <div class="bonus-stats">
-      <div class="bonus-stat">
-        <div class="bonus-stat-val" id="bonusPhase1Score"></div>
-        <div class="bonus-stat-lab">Phase 1 Score</div>
-      </div>
-      <div class="bonus-stat">
-        <div class="bonus-stat-val" id="bonusPhase1Time"></div>
-        <div class="bonus-stat-lab">Time Taken</div>
-      </div>
-    </div>
-
-    <div class="bonus-offer-box">
-      <div class="bonus-offer-title">⚡ BONUS CHALLENGE AVAILABLE</div>
-      <div class="bonus-offer-label" id="bonusRoundLabel"></div>
-      <div class="bonus-offer-desc">
-        Same points (20 / 30 for boss) — but <strong>much harder questions</strong>.<br>
-        Up to <strong id="bonusMaxExtra"></strong> more points on the line.<br>
-        Can you handle the pressure?
-      </div>
-      <div class="bonus-warning">⚠️ Same points per question — but questions are much harder. Wrong answers still have cooldowns.</div>
-    </div>
-
-    <button class="btn btn-primary bonus-accept-btn" onclick="acceptBonus()">
-      🔥 Accept the Challenge!
-    </button>
-    <button class="btn btn-secondary" onclick="declineBonus()" style="width:100%;margin-top:10px">
-      🏁 No thanks — take my score
-    </button>
-  </div>
-</div>
 
 <div class="screen" id="screen-win">
   <div class="confetti-container" id="confettiContainer"></div>
